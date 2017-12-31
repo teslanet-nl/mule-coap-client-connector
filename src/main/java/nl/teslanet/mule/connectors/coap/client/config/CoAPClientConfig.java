@@ -1,26 +1,144 @@
 package nl.teslanet.mule.connectors.coap.client.config;
 
-import org.mule.api.annotations.components.Configuration;
-import org.mule.api.annotations.Configurable;
-import org.mule.api.annotations.param.Default;
+import java.net.InetSocketAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
 
-@Configuration(friendlyName = "CoAP Client Configuration")
-public class CoAPClientConfig
+import org.eclipse.californium.core.coap.CoAP;
+import org.mule.api.annotations.Configurable;
+import org.mule.api.annotations.components.Configuration;
+import org.mule.api.annotations.display.Placement;
+import org.mule.api.annotations.param.Default;
+import org.mule.api.annotations.param.Optional;
+
+import nl.teslanet.mule.connectors.coap.client.config.EndpointConfig;
+
+@Configuration(friendlyName = "Configuration")
+public class CoAPClientConfig extends EndpointConfig
 {
+    @Configurable
+    @Placement(tab= "General")
+    private String host= null;
+
+    @Configurable
+    @Optional
+    @Placement(tab= "General")
+    private Integer port= null;
+
+    @Configurable
+    @Default(value= "/")
+    @Placement(tab= "General")
+    private String path= null;
+
+    @Configurable
+    @Default( value= "false")
+    @Placement(tab= "General")
+    //@FriendlyName(value = false)
+    private boolean secure= false;
+
+    public InetSocketAddress getLocalAddress()
+    {
+        int port = 0;
+
+        if ( secure )
+        {
+            if ( getBindToPort() != null ) port=  Integer.parseInt( getBindToPort());
+        }
+        else if ( getBindToSecurePort() != null )
+        {
+            port= Integer.parseInt( getBindToSecurePort());
+        };
+        if ( getBindToHost() != null )
+        {
+            return new InetSocketAddress( getBindToHost(), port );            
+        }
+        else
+        {
+            return new InetSocketAddress( port );            
+        }
+	}
+
+    public URI getURI() throws URISyntaxException
+    {
+        String scheme= ( isSecure() ? CoAP.COAP_SECURE_URI_SCHEME : CoAP.COAP_URI_SCHEME );
+        int port;
+
+        if ( secure )
+        {
+            port = ( getPort() != null ? getPort() : CoAP.DEFAULT_COAP_SECURE_PORT );
+        }
+        else
+        {
+            port = ( getPort() != null ? getPort() : CoAP.DEFAULT_COAP_PORT );
+        }
+        return new URI( scheme, null, getHost(), port, path, null, null );
+    }
+
+    public String getUri() throws URISyntaxException
+    {
+        return getURI().toString();
+    }
+/**
+     * @return the host
+     */
+    public String getHost()
+    {
+        return host;
+    }
 
     /**
-     * Reply message
+     * @param host the host to set
      */
-    @Configurable
-	public String uri;
+    public void setHost( String host )
+    {
+        this.host= host;
+    }
 
- 
-	public String getUri() {
-		return uri;
+    /**
+     * @return the port
+     */
+    public Integer getPort()
+    {
+        return port;
+    }
+
+    /**
+     * @param port the port to set
+     */
+    public void setPort( Integer port )
+    {
+        this.port= port;
+    }
+
+    /**
+     * @return the path
+     */
+    public String getPath()
+    {
+        return path;
+    }
+
+    /**
+     * @param path the path to set
+     */
+    public void setPath( String path )
+    {
+        this.path= path;
+    }
+
+    /**
+     * @return the secure
+     */
+    public boolean isSecure()
+    {
+        return secure;
 	}
 
-	public void setUri(String uri) {
-		this.uri = uri;
-	}
-
+    /**
+     * @param secure the secure to set
+     */
+    public void setSecure( boolean secure )
+    {
+        this.secure= secure;
+    }
 }

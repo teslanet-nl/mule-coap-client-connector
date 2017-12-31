@@ -1,6 +1,8 @@
 package nl.teslanet.mule.connectors.coap.client;
 
 
+import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -10,33 +12,43 @@ import org.eclipse.californium.core.CoapHandler;
 import org.eclipse.californium.core.CoapObserveRelation;
 import org.eclipse.californium.core.CoapResponse;
 import org.eclipse.californium.core.WebLink;
-import org.eclipse.californium.core.coap.MediaTypeRegistry;
+import org.eclipse.californium.core.coap.CoAP;
+import org.eclipse.californium.core.coap.CoAP.Code;
+import org.eclipse.californium.core.coap.CoAP.Type;
+import org.eclipse.californium.core.coap.Request;
+import org.eclipse.californium.core.network.CoapEndpoint;
+import org.mule.DefaultMuleEvent;
+import org.mule.DefaultMuleMessage;
 import org.mule.api.ConnectionException;
 import org.mule.api.ConnectionExceptionCode;
 import org.mule.api.MuleContext;
+import org.mule.api.MuleEvent;
+import org.mule.api.MuleException;
+import org.mule.api.MuleMessage;
 import org.mule.api.annotations.Config;
 import org.mule.api.annotations.Connector;
 import org.mule.api.annotations.Processor;
 import org.mule.api.annotations.Source;
-import org.mule.api.annotations.SourceStrategy;
 import org.mule.api.annotations.TestConnectivity;
 import org.mule.api.annotations.lifecycle.OnException;
 import org.mule.api.annotations.lifecycle.Start;
 import org.mule.api.annotations.lifecycle.Stop;
+import org.mule.api.annotations.param.Default;
 import org.mule.api.callback.SourceCallback;
-import org.mule.api.context.MuleContextAware;
+import org.mule.api.endpoint.MalformedEndpointException;
+import org.mule.module.http.internal.request.ResponseValidatorException;
+import org.mule.transport.NullPayload;
 
 import nl.teslanet.mule.connectors.coap.client.config.CoAPClientConfig;
 import nl.teslanet.mule.connectors.coap.client.error.ErrorHandler;
+import nl.teslanet.mule.connectors.coap.exceptions.ResponseTimeoutException;
+import nl.teslanet.mule.connectors.coap.options.OptionSet;
+import nl.teslanet.mule.connectors.coap.options.PropertyNames;
 
 
-@Connector
-(   
-    name= "coap-client",
-    friendlyName= "CoAP Client Connector",
-    schemaVersion= "1.0"
-    //namespace= "http://www.teslanet.nl/mule/connectors/coap/client",
-    //schemaLocation= "http://www.teslanet.nl/mule/connectors/coap/client/1.0/mule-coap-client.xsd"
+@Connector(name= "coap-client", friendlyName= "CoAP Client", schemaVersion= "1.0"
+//namespace= "http://www.teslanet.nl/mule/connectors/coap/client",
+//schemaLocation= "http://www.teslanet.nl/mule/connectors/coap/client/1.0/mule-coap-client.xsd"
 )
 @OnException(handler= ErrorHandler.class)
 public class CoapClientConnector
@@ -48,25 +60,29 @@ public class CoapClientConnector
     private CoapClient client= null;
 
     @Inject
-    private MuleContext context;
+    private MuleContext muleContext;
 
+    //TODO must be list
     private CoapObserveRelation relation= null;
 
     private Set< WebLink > resources= null;
-    
+
+    HashMap< String, CoapHandler > handlers= new HashMap< String, CoapHandler >();
 
     // A class with @Connector must contain exactly one method annotated with
     // @Connect
     @TestConnectivity
     public void test() throws ConnectionException
     {
-        client= new CoapClient( config.uri  );
+        String scheme= ( config.isSecure() ? CoAP.COAP_SECURE_URI_SCHEME : CoAP.COAP_URI_SCHEME );
+        client= new CoapClient( scheme, config.getHost(), config.getPort(), config.getPath() );
         if ( client == null || !client.ping() )
         {
             throw new ConnectionException( ConnectionExceptionCode.CANNOT_REACH, "coap  ping failure", null );
         }
         if ( client != null )
         {
+            //resources= client.discover();
             client.shutdown();
         }
     }
@@ -74,19 +90,33 @@ public class CoapClientConnector
     @Start
     public void startClient() throws ConnectionException
     {
-        client= new CoapClient( config.uri );
-        if ( client == null || !client.ping() )
-        {
-            throw new ConnectionException( ConnectionExceptionCode.CANNOT_REACH, "coap:  ping failure", null );
-        }
+        //TODO validaton on path (uri)configuration
+
+        String scheme= ( config.isSecure() ? CoAP.COAP_SECURE_URI_SCHEME : CoAP.COAP_URI_SCHEME );
         try
         {
-            resources= discover( null );
+            client= new CoapClient( config.getUri() );
         }
-        catch ( Exception e )
+        catch ( URISyntaxException e )
         {
-            new ConnectionException( ConnectionExceptionCode.CANNOT_REACH, "coap: discovery failure", null, e );
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
+        client.setEndpoint( new CoapEndpoint( config.getLocalAddress(), config.getNetworkConfig() ) );
+        //TODO make checking connection configurable
+        //        if ( client == null || !client.ping() )
+        //        {
+        //            throw new ConnectionException( ConnectionExceptionCode.CANNOT_REACH, "coap:  ping failure", null );
+        //        }
+        //        try
+        //        {
+        //            resources= discover( null );
+        //        }
+        //        catch ( Exception e )
+        //        {
+        //            new ConnectionException( ConnectionExceptionCode.CANNOT_REACH, "coap: discovery failure", null, e );
+        //        }
+
     }
 
     // A class with @Connector must contain exactly one method annotated with
@@ -123,17 +153,7 @@ public class CoapClientConnector
     @Processor
     public Set< WebLink > discover( String query ) throws Exception
     {
-        Set< WebLink > response= null;
-        if ( query == null || query.length() <= 0 )
-        {
-            response= client.discover();
-        }
-        else
-        {
-            response= client.discover( query );
-        }
-        return response;
-
+        return client.discover( query );
     }
 
     /**
@@ -143,27 +163,12 @@ public class CoapClientConnector
      * @throws Exception
      */
     @Processor
-    public String get( ) throws Exception
+    public MuleEvent get( MuleEvent event, @Default(value= "true") Boolean confirmable ) throws Exception
     {
-        
-        CoapResponse response= client.get();
-        if ( response != null )
-        {
+        //        int type= MediaTypeRegistry.parse( mediatype );
+        //        if ( type == MediaTypeRegistry.UNDEFINED ) throw new Exception( "coap: unsupported mediatype" );
 
-            return response.getResponseText();
-            // DefaultMuleMessage msg= DefaultMuleMessage(Object message,
-            // Map<String, Object> inboundProperties,
-            // Map<String, Object> outboundProperties, Map<String, DataHandler>
-            // attachments,
-            // MuleContext muleContext)
-
-        }
-        else
-        {
-
-            throw new Exception( "coap  leeg response" );
-
-        }
+        return doRequest( event, CoAP.Code.GET, confirmable );
     }
 
     /**
@@ -175,29 +180,12 @@ public class CoapClientConnector
      * @throws Exception
      */
     @Processor
-    public String put( String payload, String mediatype ) throws Exception
+    public MuleEvent put( MuleEvent event, @Default(value= "true") Boolean confirmable ) throws Exception
     {
-        int type= MediaTypeRegistry.parse( mediatype );
-        if ( type == MediaTypeRegistry.UNDEFINED ) throw new Exception( "coap: unsupported mediatype" );
+        //        int type= MediaTypeRegistry.parse( mediatype );
+        //        if ( type == MediaTypeRegistry.UNDEFINED ) throw new Exception( "coap: unsupported mediatype" );
 
-        CoapResponse response= client.put( payload.getBytes(), type );
-        if ( response != null )
-        {
-
-            return response.getResponseText();
-            // DefaultMuleMessage msg= DefaultMuleMessage(Object message,
-            // Map<String, Object> inboundProperties,
-            // Map<String, Object> outboundProperties, Map<String, DataHandler>
-            // attachments,
-            // MuleContext muleContext)
-
-        }
-        else
-        {
-
-            throw new Exception( "coap:  empty response" );
-
-        }
+        return doRequest( event, CoAP.Code.PUT, confirmable );
     }
 
     /**
@@ -209,29 +197,12 @@ public class CoapClientConnector
      * @throws Exception
      */
     @Processor
-    public String post( String payload, String mediatype ) throws Exception
+    public MuleEvent post( MuleEvent event, @Default(value= "true") Boolean confirmable ) throws Exception
     {
-        int type= MediaTypeRegistry.parse( mediatype );
-        if ( type == MediaTypeRegistry.UNDEFINED ) throw new Exception( "coap: unsupported mediatype" );
+        //        int type= MediaTypeRegistry.parse( mediatype );
+        //        if ( type == MediaTypeRegistry.UNDEFINED ) throw new Exception( "coap: unsupported mediatype" );
 
-        CoapResponse response= client.put( payload.getBytes(), type );
-        if ( response != null )
-        {
-
-            return response.getResponseText();
-            // DefaultMuleMessage msg= DefaultMuleMessage(Object message,
-            // Map<String, Object> inboundProperties,
-            // Map<String, Object> outboundProperties, Map<String, DataHandler>
-            // attachments,
-            // MuleContext muleContext)
-
-        }
-        else
-        {
-
-            throw new Exception( "coap:  empty response" );
-
-        }
+        return doRequest( event, CoAP.Code.POST, confirmable );
     }
 
     /**
@@ -241,49 +212,50 @@ public class CoapClientConnector
      * @throws Exception
      */
     @Processor
-    public String delete() throws Exception
+    public MuleEvent delete( MuleEvent event, @Default(value= "true") Boolean confirmable ) throws Exception
     {
 
-        CoapResponse response= client.delete();
-        if ( response != null )
-        {
-
-            return response.getResponseText();
-            // DefaultMuleMessage msg= DefaultMuleMessage(Object message,
-            // Map<String, Object> inboundProperties,
-            // Map<String, Object> outboundProperties, Map<String, DataHandler>
-            // attachments,
-            // MuleContext muleContext)
-
-        }
-        else
-        {
-
-            throw new Exception( "coap:  no response" );
-
-        }
+        return doRequest( event, CoAP.Code.DELETE, confirmable );
     }
 
     /**
-     * Custom Message Source
+     * startObserve processor that starts observe of a CoAP-resource  
      *
-     * @param callback
-     *            The sourcecallback used to dispatch message to the flow
+     * @return response of the CoAP-service
      * @throws Exception
-     *             error produced while processing the payload
      */
-    @Source(sourceStrategy= SourceStrategy.POLLING, pollingPeriod= 5000)
-    public void getNewMessages( final SourceCallback callback ) throws Exception
+    @Processor
+    public void startObserve( String handlerName ) throws Exception
     {
-        /*
-         * Every 5 the flow using this processor will be called and the payload
-         * will be the one defined here.
-         * 
-         * The PAYLOAD can be anything. In this example a String is used.
-         */
-        callback.process( "Start working" );
+        CoapHandler handler= handlers.get( handlerName );
+        //TODO add relation to list under name to identify it for cancel operation
+        if ( handler != null )
+        {
+            relation= client.observe( handler );
+        }
+        else{
+            throw new Exception( "coap handler not found: " + handler );
+        }
     }
-
+    
+    /**
+     * stopObserve processor that stops observe of a CoAP-resource  
+     *
+     * @return response of the CoAP-service
+     * @throws Exception
+     */
+    @Processor
+    public void stopObserve( String handlerName ) throws Exception
+    {
+        //TODO add relation to list under name to identify it for cancel operation
+        if ( relation != null )
+        {
+            //TODO cancel option proactive / reactive
+            relation.proactiveCancel();
+        }
+    }
+    
+    
     /**
      * Custom Message Source
      *
@@ -295,7 +267,57 @@ public class CoapClientConnector
     @Source
     public void observe( final SourceCallback callback ) throws Exception
     {
-        relation= client.observe( new CoapHandler()
+        //TODO add relation to list under name to identify it for cancel operation
+        client.observe( new CoapHandler()
+            {
+                @Override
+                public void onError()
+                {
+                    try
+                    {
+                        //TODO preliminary
+                        callback.process( new String( "coap: ERROR!" ) );
+                    }
+                    catch ( Exception e )
+                    {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onLoad( CoapResponse response )
+                {
+                    try
+                    {
+                        callback.process( createMuleMessage( response ) );
+                    }
+                    catch ( Exception e )
+                    {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+            } );
+
+    }
+
+    /**
+     * Custom Message Source
+     *
+     * @param callback
+     *            The sourcecallback used to dispatch message to the flow
+     * @param name
+     *            The sourcecallback used to dispatch message to the flow
+     * @throws Exception
+     *             error produced while processing the payload
+     */
+    @Source
+    public void handleResponse( final SourceCallback callback, String handlerName ) throws Exception
+    {
+        if ( handlerName == null || handlerName.isEmpty() ) throw new Exception( "coap Invalid ResponseHandler name" );
+
+        CoapHandler handler= new CoapHandler()
             {
 
                 @Override
@@ -314,11 +336,11 @@ public class CoapClientConnector
                 }
 
                 @Override
-                public void onLoad( CoapResponse arg0 )
+                public void onLoad( CoapResponse response )
                 {
                     try
                     {
-                        callback.process( arg0.getResponseText() );
+                        callback.process( createMuleMessage( response ) );
                     }
                     catch ( Exception e )
                     {
@@ -328,8 +350,9 @@ public class CoapClientConnector
 
                 }
 
-            } );
+            };
 
+        handlers.put( handlerName, handler );
     }
 
     public CoAPClientConfig getConfig()
@@ -351,8 +374,8 @@ public class CoapClientConnector
         };
     }
     */
-    
-    public boolean verifyResource( )
+
+    public boolean verifyResource()
     {
         WebLink found= null;
 
@@ -360,24 +383,120 @@ public class CoapClientConnector
         {
             for ( WebLink link : resources )
             {
-                if ( link.getURI().equals( config.getUri()) )
+                try
                 {
-                    found= link;
+                    if ( link.getURI().equals( config.getUri() ) )
+                    {
+                        found= link;
+                    }
+                }
+                catch ( URISyntaxException e )
+                {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
                 }
             }
-        };
+        } ;
         return found != null;
 
     }
 
-    public MuleContext getContext()
+    private MuleEvent doRequest( MuleEvent event, Code requestCode, Boolean confirmable ) throws MuleException, ResponseTimeoutException
     {
-        return context;
+        MuleMessage muleMessage= event.getMessage();
+        Type type= ( confirmable ? Type.CON : Type.NON );
+        Request request= new Request( requestCode, type );
+        try
+        {
+            request.setURI( config.getURI() );
+        }
+        catch ( URISyntaxException e1 )
+        {
+            throw new MalformedEndpointException( e1 );
+        }
+        Object requestPayload= muleMessage.getPayload();
+        //TODO reconsider payload type
+        if ( requestPayload != null && !requestPayload.equals( NullPayload.getInstance() ) )
+        {
+            if ( byte[].class.isInstance( requestPayload ) )
+            {
+                request.setPayload( (byte[]) requestPayload );
+            }
+            else
+            {
+                request.setPayload( requestPayload.toString() );
+            }
+        }
+        //TODO improve efficiency
+        HashMap< String, Object > outboundProps= new HashMap< String, Object >();
+        for ( String propName : event.getMessage().getOutboundPropertyNames() )
+        {
+            outboundProps.put( propName, muleMessage.getOutboundProperty( propName ) );
+        }
+        request.setOptions( new OptionSet( outboundProps ) );
+        //Map< String, Object > inboundProperties= createInboundProperties( exchange );
+        //Map< String, Object > outboundProperties= new HashMap< String, Object >();
+        CoapResponse response= client.advanced( request );
+        if ( response == null )
+        {
+            String uri;
+            try
+            {
+                uri= this.config.getUri();
+            }
+            catch ( URISyntaxException e )
+            {
+                uri= "?";
+            }
+            throw new ResponseTimeoutException( uri, type, requestCode );
+
+        }
+        else if ( !response.isSuccess() )
+        {
+            String uri;
+            try
+            {
+                uri= this.config.getUri();
+            }
+            catch ( URISyntaxException e )
+            {
+                uri= "?";
+            }
+            throw new ResponseValidatorException(
+                "coap response code ( " + response.getCode().toString() + " ) is mapped to failure." + "\n while doing request: " + type.toString() + "-" + requestCode.toString()
+                    + "\n on uri:  " + uri,
+                event );
+        } ;
+        return createMuleEvent( response, event );
     }
 
-    public void setContext( MuleContext context )
+    private MuleMessage createMuleMessage( CoapResponse response )
     {
-        this.context = context;
+        HashMap< String, Object > inboundProps= new HashMap< String, Object >();
+        inboundProps.put( PropertyNames.COAP_RESPONSE_CODE, response.getCode().toString() );
+        OptionSet.fillProperties( response.getOptions(), inboundProps );
+        //TODO review payloadtype
+        DefaultMuleMessage result= new DefaultMuleMessage( response.getResponseText(), inboundProps, null, null, muleContext );
+
+        return result;
+    }
+
+    private MuleEvent createMuleEvent( CoapResponse response, MuleEvent rewriteEvent )
+    {
+        MuleMessage responseMuleMessage= createMuleMessage( response );
+        DefaultMuleEvent result= new DefaultMuleEvent( responseMuleMessage, rewriteEvent );
+
+        return result;
+    }
+
+    public MuleContext getMuleContext()
+    {
+        return muleContext;
+    }
+
+    public void setMuleContext( MuleContext context )
+    {
+        this.muleContext= context;
     }
 
 }
