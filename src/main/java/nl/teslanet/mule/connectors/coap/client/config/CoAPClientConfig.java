@@ -26,11 +26,6 @@ public class CoAPClientConfig extends EndpointConfig
     private Integer port= null;
 
     @Configurable
-    @Default(value= "/")
-    @Placement(tab= "General")
-    private String path= null;
-
-    @Configurable
     @Default( value= "false")
     @Placement(tab= "General")
     //@FriendlyName(value = false)
@@ -58,26 +53,7 @@ public class CoAPClientConfig extends EndpointConfig
         }
 	}
 
-    public URI getURI() throws URISyntaxException
-    {
-        String scheme= ( isSecure() ? CoAP.COAP_SECURE_URI_SCHEME : CoAP.COAP_URI_SCHEME );
-        int port;
 
-        if ( secure )
-        {
-            port = ( getPort() != null ? getPort() : CoAP.DEFAULT_COAP_SECURE_PORT );
-        }
-        else
-        {
-            port = ( getPort() != null ? getPort() : CoAP.DEFAULT_COAP_PORT );
-        }
-        return new URI( scheme, null, getHost(), port, path, null, null );
-    }
-
-    public String getUri() throws URISyntaxException
-    {
-        return getURI().toString();
-    }
 /**
      * @return the host
      */
@@ -110,21 +86,6 @@ public class CoAPClientConfig extends EndpointConfig
         this.port= port;
     }
 
-    /**
-     * @return the path
-     */
-    public String getPath()
-    {
-        return path;
-    }
-
-    /**
-     * @param path the path to set
-     */
-    public void setPath( String path )
-    {
-        this.path= path;
-    }
 
     /**
      * @return the secure
