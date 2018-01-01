@@ -38,6 +38,7 @@ import org.mule.api.annotations.lifecycle.OnException;
 import org.mule.api.annotations.lifecycle.Start;
 import org.mule.api.annotations.lifecycle.Stop;
 import org.mule.api.annotations.param.Default;
+import org.mule.api.annotations.param.Optional;
 import org.mule.api.callback.SourceCallback;
 import org.mule.api.endpoint.MalformedEndpointException;
 import org.mule.module.http.internal.request.ResponseValidatorException;
@@ -64,22 +65,21 @@ public class CoapClientConnector
     @Inject
     private MuleContext muleContext;
 
-    //TODO must be list
-    private CoapObserveRelation relation= null;
-
-    private Set< WebLink > resources= null;
-
-    HashMap< String, CoapHandler > handlers= new HashMap< String, CoapHandler >();
-
     private CoapEndpoint endpoint= null;
 
+    //private Set< WebLink > resources= null;
+    
+    private HashMap< String, CoapObserveRelation > relations= new HashMap< String, CoapObserveRelation >();
+
+    private HashMap< String, CoapHandler > handlers= new HashMap< String, CoapHandler >();
+ 
     // A class with @Connector must contain exactly one method annotated with
     // @Connect
     @TestConnectivity
     public void test() throws ConnectionException, MalformedEndpointException
     {
-        CoapClient client= createClient( "/");
-        
+        CoapClient client= createClient( "/" );
+
         String scheme= ( config.isSecure() ? CoAP.COAP_SECURE_URI_SCHEME : CoAP.COAP_URI_SCHEME );
         if ( client == null || !client.ping() )
         {
@@ -95,14 +95,15 @@ public class CoapClientConnector
     @Start
     public void startConnector() throws ConnectionException
     {
-        //prevent creating propfile
-        NetworkConfig.setStandard( config.getNetworkConfig() );
+        NetworkConfig networkConfig= config.getNetworkConfig();
+        //prevent creating property file
+        NetworkConfig.setStandard( networkConfig );
 
         if ( endpoint != null )
         {
             endpoint.destroy();
         }
-        endpoint= new CoapEndpoint( config.getLocalAddress(), config.getNetworkConfig() );
+        endpoint= new CoapEndpoint( config.getLocalAddress(), networkConfig );
         try
         {
             endpoint.start();
@@ -113,17 +114,19 @@ public class CoapClientConnector
         }
     }
 
-
-
     // A class with @Connector must contain exactly one method annotated with
     @Stop
     public void stopConnector()
     {
-        if ( relation != null ) relation.proactiveCancel();
-       
+        for ( CoapObserveRelation relation : relations.values() )
+            relation.proactiveCancel();
+        relations.clear();
+        handlers.clear();
+
         if ( endpoint != null )
         {
             endpoint.destroy();
+            endpoint= null;
         }
     }
 
@@ -138,7 +141,7 @@ public class CoapClientConnector
     {
         CoapClient client= createClient( path );
 
-        boolean response= client.ping();
+        boolean response= client.ping( );
         return new Boolean( response );
     }
 
@@ -162,11 +165,27 @@ public class CoapClientConnector
      * @throws Exception
      */
     @Processor
-    public MuleEvent get( MuleEvent event, String path, @Default(value= "true") Boolean confirmable ) throws Exception
+    public MuleEvent get( MuleEvent event, String path, @Default(value= "true") Boolean confirmable )
+        throws Exception
     {
         //        int type= MediaTypeRegistry.parse( mediatype );
         //        if ( type == MediaTypeRegistry.UNDEFINED ) throw new Exception( "coap: unsupported mediatype" );
-        return doRequest( event, CoAP.Code.GET, path, confirmable );
+        return doRequest( event, CoAP.Code.GET, path, confirmable, null );
+    }
+
+    /**
+     * get-async processor that retrieves a CoAP resource. The response is handled asynchronously by specified handler.
+     *  
+     * @return Response of te coap service
+     * @throws Exception
+     */
+    @Processor
+    public MuleEvent asyncGet( MuleEvent event, String path, @Default(value= "true") Boolean confirmable, String responseHandler )
+        throws Exception
+    {
+        //        int type= MediaTypeRegistry.parse( mediatype );
+        //        if ( type == MediaTypeRegistry.UNDEFINED ) throw new Exception( "coap: unsupported mediatype" );
+        return doRequest( event, CoAP.Code.GET, path, confirmable, responseHandler );
     }
 
     /**
@@ -183,7 +202,24 @@ public class CoapClientConnector
         //        int type= MediaTypeRegistry.parse( mediatype );
         //        if ( type == MediaTypeRegistry.UNDEFINED ) throw new Exception( "coap: unsupported mediatype" );
 
-        return doRequest( event, CoAP.Code.PUT, path, confirmable );
+        return doRequest( event, CoAP.Code.PUT, path, confirmable, null );
+    }
+
+    /**
+     * async put processor that delivers a resource the the CoAP-service. The response is handled asynchronously by specified handler.
+     *
+     * @param payload
+     *            Body of the message to be sent.
+     * @return response body  of the CoAP-service
+     * @throws Exception
+     */
+    @Processor
+    public MuleEvent asyncPut( MuleEvent event, String path, @Default(value= "true") Boolean confirmable, String responseHandler ) throws Exception
+    {
+        //        int type= MediaTypeRegistry.parse( mediatype );
+        //        if ( type == MediaTypeRegistry.UNDEFINED ) throw new Exception( "coap: unsupported mediatype" );
+
+        return doRequest( event, CoAP.Code.PUT, path, confirmable, responseHandler );
     }
 
     /**
@@ -200,9 +236,26 @@ public class CoapClientConnector
         //        int type= MediaTypeRegistry.parse( mediatype );
         //        if ( type == MediaTypeRegistry.UNDEFINED ) throw new Exception( "coap: unsupported mediatype" );
 
-        return doRequest( event, CoAP.Code.POST, path, confirmable );
+        return doRequest( event, CoAP.Code.POST, path, confirmable, null );
     }
 
+    /**
+     * async post processor that sends a message to a CoAP-resource. The response is handled asynchronously by specified handler.
+     *
+     * @param payload
+     *            Body of the message to be sent.
+     * @return response body  of the CoAP-service
+     * @throws Exception
+     */
+    @Processor
+    public MuleEvent asyncPost( MuleEvent event, String path, @Default(value= "true") Boolean confirmable,  String responseHandler ) throws Exception
+    {
+        //        int type= MediaTypeRegistry.parse( mediatype );
+        //        if ( type == MediaTypeRegistry.UNDEFINED ) throw new Exception( "coap: unsupported mediatype" );
+
+        return doRequest( event, CoAP.Code.POST, path, confirmable, responseHandler );
+    }    
+    
     /**
      * delete processor that sends a delete request to a CoAP-resource  
      *
@@ -213,7 +266,20 @@ public class CoapClientConnector
     public MuleEvent delete( MuleEvent event, String path, @Default(value= "true") Boolean confirmable ) throws Exception
     {
 
-        return doRequest( event, CoAP.Code.DELETE, path, confirmable );
+        return doRequest( event, CoAP.Code.DELETE, path, confirmable, null );
+    }
+
+    /**
+     * async delete processor that sends a delete request to a CoAP-resource. The response is handled asynchronously by specified handler.
+     *
+     * @return response of the CoAP-service
+     * @throws Exception
+     */
+    @Processor
+    public MuleEvent asyncDelete( MuleEvent event, String path, @Default(value= "true") Boolean confirmable, String responseHandler ) throws Exception
+    {
+
+        return doRequest( event, CoAP.Code.DELETE, path, confirmable, responseHandler );
     }
 
     /**
@@ -223,19 +289,25 @@ public class CoapClientConnector
      * @throws Exception
      */
     @Processor
-    public void startObserve( String path, String handlerName ) throws Exception
+    public void startObserve( String path, String responseHandler ) throws Exception
     {
         CoapClient client= createClient( path );
-        
-        CoapHandler handler= handlers.get( handlerName );
-        //TODO add relation to list under name to identify it for cancel operation
+
+        CoapHandler handler= handlers.get( responseHandler );
         if ( handler != null )
         {
-            relation= client.observe( handler );
+            if ( relations.containsKey( path ) )
+            {
+                //only one observe relation allowed per connector & path 
+                relations.get( path ).proactiveCancel();
+                relations.remove( path );
+            }
+            CoapObserveRelation relation= client.observe( handler );
+            relations.put( path, relation );
         }
         else
         {
-            throw new Exception( "coap handler not found: " + handler );
+            throw new Exception( "coap handler not found: " + responseHandler );
         }
     }
 
@@ -246,13 +318,13 @@ public class CoapClientConnector
      * @throws Exception
      */
     @Processor
-    public void stopObserve( String handlerName ) throws Exception
+    public void stopObserve( String path ) throws Exception
     {
-        //TODO add relation to list under name to identify it for cancel operation
+        CoapObserveRelation relation= relations.get( path );
         if ( relation != null )
         {
-            //TODO cancel option proactive / reactive
             relation.proactiveCancel();
+            relations.remove( path );
         }
     }
 
@@ -268,9 +340,8 @@ public class CoapClientConnector
     public void observe( String path, final SourceCallback callback ) throws Exception
     {
         CoapClient client= createClient( path );
-
-        //TODO add relation to list under name to identify it for cancel operation
-        client.observe( new CoapHandler()
+        //TODO retry mechanism
+        CoapObserveRelation relation= client.observe( new CoapHandler()
             {
                 @Override
                 public void onError()
@@ -301,6 +372,8 @@ public class CoapClientConnector
                     }
                 }
             } );
+        //TODO interacts with dynamic created observe mechanism: review
+        relations.put( path, relation );
 
     }
 
@@ -377,24 +450,24 @@ public class CoapClientConnector
     }
     */
 
-    public boolean verifyResource() throws URISyntaxException
-    {
-        WebLink found= null;
+    //    public boolean verifyResource() throws URISyntaxException
+    //    {
+    //        WebLink found= null;
+    //
+    //        if ( resources != null && !resources.isEmpty() )
+    //        {
+    //            for ( WebLink link : resources )
+    //            {
+    //                if ( link.getURI().equals( "/" ) )
+    //                {
+    //                    found= link;
+    //                }
+    //            }
+    //        } ;
+    //        return found != null;
+    //
+    //    }
 
-        if ( resources != null && !resources.isEmpty() )
-        {
-            for ( WebLink link : resources )
-            {
-                if ( link.getURI().equals( "/" ) )
-                {
-                    found= link;
-                }
-            }
-        } ;
-        return found != null;
-
-    }
-    
     public URI getURI( String path ) throws URISyntaxException
     {
         String scheme= ( config.isSecure() ? CoAP.COAP_SECURE_URI_SCHEME : CoAP.COAP_URI_SCHEME );
@@ -402,11 +475,11 @@ public class CoapClientConnector
 
         if ( config.isSecure() )
         {
-            port = ( config.getPort() != null ? config.getPort() : CoAP.DEFAULT_COAP_SECURE_PORT );
+            port= ( config.getPort() != null ? config.getPort() : CoAP.DEFAULT_COAP_SECURE_PORT );
         }
         else
         {
-            port = ( config.getPort() != null ? config.getPort() : CoAP.DEFAULT_COAP_PORT );
+            port= ( config.getPort() != null ? config.getPort() : CoAP.DEFAULT_COAP_PORT );
         }
         return new URI( scheme, null, config.getHost(), port, path, null, null );
     }
@@ -416,7 +489,6 @@ public class CoapClientConnector
         return getURI( path ).toString();
     }
 
-    
     private CoapClient createClient( String path ) throws MalformedEndpointException
     {
         CoapClient client;
@@ -429,16 +501,25 @@ public class CoapClientConnector
             throw new MalformedEndpointException( e );
         }
         client.setEndpoint( endpoint );
-        
+
         return client;
     }
-    
-    private MuleEvent doRequest( MuleEvent event, Code requestCode, String path, Boolean confirmable ) throws MuleException, ResponseTimeoutException
+    //TODO add custom timeout
+    private MuleEvent doRequest( MuleEvent event, Code requestCode, String path, Boolean confirmable, String handlerName ) throws Exception
     {
-        CoapClient client= createClient( path );       
+        //when handler needed, verify handler existence 
+        CoapHandler handler= null;
+        if ( handlerName != null )
+        {
+            handler= handlers.get( handlerName );
+            if ( handler == null ) throw new Exception( "coap unknown handler: " + handlerName );
+        }
+
+        CoapClient client= createClient( path );
+
+        //build request
         MuleMessage muleMessage= event.getMessage();
-        Type type= ( confirmable ? Type.CON : Type.NON );
-        Request request= new Request( requestCode, type );
+        Request request= new Request( requestCode, ( confirmable ? Type.CON : Type.NON ) );
 
         Object requestPayload= muleMessage.getPayload();
         //TODO reconsider payload type
@@ -460,22 +541,41 @@ public class CoapClientConnector
             outboundProps.put( propName, muleMessage.getOutboundProperty( propName ) );
         }
         request.setOptions( new OptionSet( outboundProps ) );
-        //Map< String, Object > inboundProperties= createInboundProperties( exchange );
-        //Map< String, Object > outboundProperties= new HashMap< String, Object >();
-        CoapResponse response= client.advanced( request );
+
+        if ( handler == null )
+        {
+            //send out request
+            CoapResponse response= client.advanced( request );
+
+            //throw exception when no success
+            checkSucces( response, request );
+
+            //return response to mule flow
+            return createMuleEvent( response, event );
+        }
+        else
+        {
+            //async response
+            client.advanced( handler, request );
+            //return unchanged message to mule flow
+            return( event );
+        }
+
+    }
+
+    private void checkSucces( CoapResponse response, Request request ) throws Exception
+    {
         if ( response == null )
         {
-            throw new ResponseTimeoutException( client.getURI(), type, requestCode );
+            throw new ResponseTimeoutException( request.getURI(), request.getType(), request.getCode() );
 
         }
         else if ( !response.isSuccess() )
         {
-            throw new ResponseValidatorException(
-                "coap response code ( " + response.getCode().toString() + " ) is mapped to failure." + "\n while doing request: " + type.toString() + "-" + requestCode.toString()
-                    + "\n on uri:  " + client.getURI(),
-                event );
+            throw new Exception(
+                "coap response code ( " + response.getCode().toString() + " ) is mapped to failure." + "\n while doing request: " + request.getType().toString() + "-"
+                    + request.getCode().toString() + "\n on uri:  " + request.getURI() );
         } ;
-        return createMuleEvent( response, event );
     }
 
     private MuleMessage createMuleMessage( CoapResponse response )
@@ -483,7 +583,7 @@ public class CoapClientConnector
         HashMap< String, Object > inboundProps= new HashMap< String, Object >();
         inboundProps.put( PropertyNames.COAP_RESPONSE_CODE, response.getCode().toString() );
         OptionSet.fillProperties( response.getOptions(), inboundProps );
-        //TODO review payloadtype
+        //TODO review payload type
         DefaultMuleMessage result= new DefaultMuleMessage( response.getResponseText(), inboundProps, null, null, muleContext );
 
         return result;
