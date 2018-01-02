@@ -152,7 +152,7 @@ public class CoapClientConnector
      * @throws Exception
      */
     @Processor
-    public Set< WebLink > discover( String path, String query ) throws Exception
+    public Set< WebLink > discover( String path, @Optional String query ) throws Exception
     {
         CoapClient client= createClient( path );
         return client.discover( query );
