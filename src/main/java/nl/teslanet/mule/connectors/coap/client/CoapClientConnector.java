@@ -42,15 +42,13 @@ import org.mule.api.annotations.param.Default;
 import org.mule.api.annotations.param.Optional;
 import org.mule.api.callback.SourceCallback;
 import org.mule.api.endpoint.MalformedEndpointException;
-import org.mule.api.transformer.DataType;
 import org.mule.transformer.types.DataTypeFactory;
-import org.mule.transformer.types.SimpleDataType;
 import org.mule.transport.NullPayload;
 
 import nl.teslanet.mule.connectors.coap.client.config.CoAPClientConfig;
 import nl.teslanet.mule.connectors.coap.client.error.ErrorHandler;
 import nl.teslanet.mule.connectors.coap.exceptions.ResponseTimeoutException;
-import nl.teslanet.mule.connectors.coap.options.OptionSet;
+import nl.teslanet.mule.connectors.coap.options.Options;
 import nl.teslanet.mule.connectors.coap.options.PropertyNames;
 
 
@@ -395,7 +393,6 @@ public class CoapClientConnector
 
         CoapHandler handler= new CoapHandler()
             {
-
                 @Override
                 public void onError()
                 {
@@ -543,7 +540,7 @@ public class CoapClientConnector
         {
             outboundProps.put( propName, muleMessage.getOutboundProperty( propName ) );
         }
-        request.setOptions( new OptionSet( outboundProps ) );
+        request.setOptions( new Options( outboundProps ) );
         if ( queryParameters != null )
         {
             //add query parameters
@@ -593,18 +590,21 @@ public class CoapClientConnector
 
     private MuleMessage createMuleMessage( CoapResponse response )
     {
+        DefaultMuleMessage result= null;
         HashMap< String, Object > inboundProps= new HashMap< String, Object >();
         inboundProps.put( PropertyNames.COAP_RESPONSE_CODE, response.getCode().toString() );
-        OptionSet.fillProperties( response.getOptions(), inboundProps );
-        String mediaType= MediaTypeRegistry.toString( response.getOptions().getContentFormat() );
-        DefaultMuleMessage result= new DefaultMuleMessage(
-            response.getPayload(),
-            inboundProps,
-            null,
-            null,
-            muleContext,
-            DataTypeFactory.create( response.getPayload().getClass(), mediaType ) );
+        Options.fillProperties( response.getOptions(), inboundProps );
 
+        int contentFormat= response.getOptions().getContentFormat();
+        if ( contentFormat == MediaTypeRegistry.UNDEFINED )
+        {
+            result= new DefaultMuleMessage( response.getPayload(), inboundProps, null, null, muleContext );
+        }
+        else
+        {
+            String mediaType= MediaTypeRegistry.toString( response.getOptions().getContentFormat() );
+            result= new DefaultMuleMessage( response.getPayload(), inboundProps, null, null, muleContext, DataTypeFactory.create( response.getPayload().getClass(), mediaType ) );
+        }
         return result;
     }
 
