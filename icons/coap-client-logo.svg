@@ -17,9 +17,9 @@
    version="1.1"
    inkscape:version="0.91 r13725"
    sodipodi:docname="coap-client-logo.svg"
-   inkscape:export-filename="/home/rogier/workspaces/AnypointStudio6d/coap-client-connector/icons/theme.light/coap-client-endpoint-small.png"
-   inkscape:export-xdpi="4.0599999"
-   inkscape:export-ydpi="4.0599999">
+   inkscape:export-filename="/home/rogier/workspaces/AnypointStudio6d/coap-client-connector/icons/theme.light/coap-client-endpoint-large.png"
+   inkscape:export-xdpi="6.6039996"
+   inkscape:export-ydpi="6.6039996">
   <defs
      id="defs4">
     <linearGradient
@@ -39,13 +39,13 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.4"
-     inkscape:cx="-26.095472"
+     inkscape:cx="115.80427"
      inkscape:cy="170.68835"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
      inkscape:window-width="1600"
-     inkscape:window-height="835"
+     inkscape:window-height="871"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1" />
@@ -68,16 +68,16 @@
      transform="translate(0,-698.0315)"
      style="display:inline">
     <path
-       style="opacity:1;fill:none;fill-opacity:1;fill-rule:nonzero;stroke:#8c8c8c;stroke-width:35.43307087;stroke-linecap:butt;stroke-linejoin:bevel;stroke-miterlimit:0.2;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       style="opacity:1;fill:none;fill-opacity:1;fill-rule:nonzero;stroke:#8c8c8c;stroke-width:35.43307114;stroke-linecap:butt;stroke-linejoin:bevel;stroke-miterlimit:0.2;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="path4144"
        sodipodi:type="arc"
        sodipodi:cx="185.69975"
        sodipodi:cy="874.52478"
        sodipodi:rx="136.17479"
        sodipodi:ry="127.5049"
-       sodipodi:start="0.74833135"
-       sodipodi:end="5.5260953"
-       d="M 285.49208,961.28127 A 136.17479,127.5049 0 0 1 136.20607,993.30974 136.17479,127.5049 0 0 1 49.526269,875.08316 136.17479,127.5049 0 0 1 135.09684,756.15027 136.17479,127.5049 0 0 1 284.67672,786.95324"
+       sodipodi:start="1.0471976"
+       sodipodi:end="5.2359878"
+       d="M 253.78714,984.94726 A 136.17479,127.5049 0 0 1 81.383808,956.48334 136.17479,127.5049 0 0 1 81.383816,792.56621 136.17479,127.5049 0 0 1 253.78715,764.1023"
        inkscape:transform-center-x="-78.831642"
        inkscape:transform-center-y="30.418501"
        sodipodi:open="true" />
