@@ -1,9 +1,11 @@
 package nl.teslanet.mule.connectors.coap.client;
 
 
-import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.KeyStore;
+import java.security.PrivateKey;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -23,7 +25,9 @@ import org.eclipse.californium.core.coap.CoAP.Type;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.eclipse.californium.core.coap.Request;
 import org.eclipse.californium.core.network.CoapEndpoint;
-import org.eclipse.californium.core.network.config.NetworkConfig;
+import org.eclipse.californium.scandium.DTLSConnector;
+import org.eclipse.californium.scandium.config.DtlsConnectorConfig;
+import org.eclipse.californium.scandium.dtls.pskstore.InMemoryPskStore;
 import org.mule.DefaultMuleEvent;
 import org.mule.DefaultMuleMessage;
 import org.mule.api.ConnectionException;
@@ -45,6 +49,7 @@ import org.mule.api.callback.SourceCallback;
 import org.mule.api.endpoint.MalformedEndpointException;
 import org.mule.transformer.types.DataTypeFactory;
 import org.mule.transport.NullPayload;
+import org.mule.util.IOUtils;
 
 import nl.teslanet.mule.connectors.coap.client.config.CoAPClientConfig;
 import nl.teslanet.mule.connectors.coap.client.error.ErrorHandler;
@@ -96,20 +101,16 @@ public class CoapClientConnector
     @Start
     public void startConnector() throws ConnectionException
     {
-        NetworkConfig networkConfig= config.getNetworkConfig();
-        //prevent creating property file
-        NetworkConfig.setStandard( networkConfig );
-
         if ( endpoint != null )
         {
             endpoint.destroy();
         }
-        endpoint= new CoapEndpoint( config.getLocalAddress(), networkConfig );
         try
         {
+            endpoint= createEndpoint( this.config );
             endpoint.start();
         }
-        catch ( IOException e )
+        catch ( Exception e )
         {
             throw new ConnectionException( ConnectionExceptionCode.UNKNOWN, "coap endpoint fault", "coap uri endpoint", e );
         }
@@ -120,7 +121,9 @@ public class CoapClientConnector
     public void stopConnector()
     {
         for ( CoapObserveRelation relation : relations.values() )
+        {
             relation.proactiveCancel();
+        }
         relations.clear();
         handlers.clear();
 
@@ -129,6 +132,63 @@ public class CoapClientConnector
             endpoint.destroy();
             endpoint= null;
         }
+    }
+    
+    private CoapEndpoint createEndpoint( CoAPClientConfig config ) throws Exception
+    {
+        CoapEndpoint endpoint= null;
+        
+        if ( !config.isSecure() )
+        {
+            endpoint= new CoapEndpoint( config.getLocalAddress(), config.getNetworkConfig() );
+        }
+        else
+        {
+            // Pre-shared secrets
+            //TODO improve security (-> not in memory ) 
+            InMemoryPskStore pskStore= new InMemoryPskStore();
+            //pskStore.setKey("password", "sesame".getBytes()); // from ETSI Plugtest test spec
+
+            // load the key store
+            KeyStore keyStore= KeyStore.getInstance( "JKS" );
+            InputStream in= IOUtils.getResourceAsStream( config.getKeyStoreLocation(), this.getClass(), true, true );
+            keyStore.load( in, config.getKeyStorePassword().toCharArray() );
+
+            // load the trust store
+            KeyStore trustStore= KeyStore.getInstance( "JKS" );
+            InputStream inTrust= IOUtils.getResourceAsStream( config.getTrustStoreLocation(), this.getClass(), true, true );
+            trustStore.load( inTrust, config.getTrustStorePassword().toCharArray() );
+
+            // You can load multiple certificates if needed
+            DtlsConnectorConfig.Builder configBuider= new DtlsConnectorConfig.Builder( config.getLocalAddress() );
+            configBuider.setPskStore( pskStore );
+            try
+            {
+                configBuider.setTrustStore( trustStore.getCertificateChain( config.getTrustedRootCertificateAlias() ) );
+            }
+            catch ( Exception e )
+            {
+                throw new Exception( "coap: certificate chain with alias not found in truststore" );
+            }
+            try
+            {
+
+                configBuider.setIdentity(
+                    (PrivateKey) keyStore.getKey( config.getPrivateKeyAlias(), config.getKeyStorePassword().toCharArray() ),
+                    keyStore.getCertificateChain( config.getPrivateKeyAlias() ),
+                    true );
+            }
+            catch ( Exception e )
+            {
+                throw new Exception( "coap: private key with alias not found in keystore" );
+            }
+            DTLSConnector connector= new DTLSConnector( configBuider.build() );
+            //DTLSConnector connector = new DTLSConnector(new InetSocketAddress(DTLS_PORT), trustedCertificates);
+            //connector.getConfig().setPrivateKey((PrivateKey)keyStore.getKey("server", KEY_STORE_PASSWORD.toCharArray()), keyStore.getCertificateChain("server"), true);
+
+            endpoint= new CoapEndpoint( connector, config.getNetworkConfig());
+        }
+        return endpoint;
     }
 
     /**

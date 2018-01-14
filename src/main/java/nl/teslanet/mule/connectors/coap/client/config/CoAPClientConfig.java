@@ -17,17 +17,17 @@ import nl.teslanet.mule.connectors.coap.client.config.EndpointConfig;
 public class CoAPClientConfig extends EndpointConfig
 {
     @Configurable
-    @Placement(tab= "General")
+    @Placement(tab= "General", group="Connect to")
     private String host= null;
 
     @Configurable
     @Optional
-    @Placement(tab= "General")
+    @Placement(tab= "General", group="Connect to")
     private Integer port= null;
 
     @Configurable
     @Default( value= "false")
-    @Placement(tab= "General")
+    @Placement(tab= "General", group="Connect to")
     //@FriendlyName(value = false)
     private boolean secure= false;
 
