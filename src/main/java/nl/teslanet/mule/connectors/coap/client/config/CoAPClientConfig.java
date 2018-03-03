@@ -25,6 +25,8 @@ public class CoAPClientConfig extends EndpointConfig
     @Placement(tab= "General", group="Connect to")
     private Integer port= null;
 
+    //TODO add base path 
+    
     @Configurable
     @Default( value= "false")
     @Placement(tab= "General", group="Connect to")

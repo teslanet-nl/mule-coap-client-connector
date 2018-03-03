@@ -17,9 +17,9 @@
    version="1.1"
    inkscape:version="0.91 r13725"
    sodipodi:docname="coap-client-logo.svg"
-   inkscape:export-filename="/home/rogier/workspaces/AnypointStudio6d/coap-client-connector/icons/theme.light/coap-client-endpoint-large.png"
-   inkscape:export-xdpi="6.6039996"
-   inkscape:export-ydpi="6.6039996">
+   inkscape:export-filename="/home/rogier/workspaces/AnypointStudio6d/coap-client-connector/icons/theme.light/coap-client-endpoint-small.png"
+   inkscape:export-xdpi="4.0599999"
+   inkscape:export-ydpi="4.0599999">
   <defs
      id="defs4">
     <linearGradient
@@ -39,7 +39,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.4"
-     inkscape:cx="115.80427"
+     inkscape:cx="100.08999"
      inkscape:cy="170.68835"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
@@ -93,7 +93,7 @@
     <rect
        style="display:inline;opacity:1;fill:#8c8c8c;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:28.34645653;stroke-linecap:butt;stroke-linejoin:bevel;stroke-miterlimit:0.2;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="rect4171-3"
-       width="168.55157"
+       width="140"
        height="35.433071"
        x="186.44492"
        y="819.04913"
@@ -102,7 +102,7 @@
     <rect
        style="display:inline;opacity:1;fill:#8c8c8c;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:28.34645653;stroke-linecap:butt;stroke-linejoin:bevel;stroke-miterlimit:0.2;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="rect4171-0"
-       width="169.56142"
+       width="140"
        height="35.433071"
        x="186.44493"
        y="896.92914"
