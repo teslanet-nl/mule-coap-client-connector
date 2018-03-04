@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.inject.Inject;
 
@@ -66,8 +67,8 @@ import nl.teslanet.mule.connectors.coap.options.PropertyNames;
 @OnException(handler= ErrorHandler.class)
 public class CoapClientConnector
 {
-    //TODO make override host:port possible on all requests, not only observe 
-    
+    //TODO make host port optional on connector config and exception handling on missing on connector and on operation
+
     @Config
     private CoAPClientConfig config;
 
@@ -78,7 +79,8 @@ public class CoapClientConnector
 
     // private Set< WebLink > resources= null;
 
-    private ConcurrentSkipListMap< String, CoapObserveRelation > relations= new ConcurrentSkipListMap< String, CoapObserveRelation >();
+    private ConcurrentSkipListMap< String, CoapObserveRelation > staticRelations= new ConcurrentSkipListMap< String, CoapObserveRelation >();
+    private ConcurrentSkipListMap< String, CoapObserveRelation > dynamicRelations= new ConcurrentSkipListMap< String, CoapObserveRelation >();
 
     private ConcurrentSkipListMap< String, SourceCallback > handlers= new ConcurrentSkipListMap< String, SourceCallback >();
 
@@ -122,11 +124,16 @@ public class CoapClientConnector
     @Stop
     public void stopConnector()
     {
-        for ( CoapObserveRelation relation : relations.values() )
+        for ( CoapObserveRelation relation : staticRelations.values() )
         {
             relation.proactiveCancel();
         }
-        relations.clear();
+        staticRelations.clear();
+        for ( CoapObserveRelation relation : dynamicRelations.values() )
+        {
+            relation.proactiveCancel();
+        }
+        dynamicRelations.clear();
         handlers.clear();
 
         if ( endpoint != null )
@@ -232,7 +239,13 @@ public class CoapClientConnector
      * @throws Exception
      */
     @Processor
-    public MuleEvent get( MuleEvent event, @Default(value= "true") Boolean confirmable, @Optional String host, @Optional Integer port, String path, @Optional List< String > queryParameters ) throws Exception
+    public MuleEvent get(
+        MuleEvent event,
+        @Default(value= "true") Boolean confirmable,
+        @Optional String host,
+        @Optional Integer port,
+        String path,
+        @Optional List< String > queryParameters ) throws Exception
     {
         return doRequest( event, CoAP.Code.GET, confirmable, host, port, path, queryParameters, null );
     }
@@ -245,8 +258,14 @@ public class CoapClientConnector
      * @throws Exception
      */
     @Processor
-    public MuleEvent asyncGet( MuleEvent event, @Default(value= "true") Boolean confirmable, @Optional String host, @Optional Integer port, String path, @Optional List< String > queryParameters, String responseHandler )
-        throws Exception
+    public MuleEvent asyncGet(
+        MuleEvent event,
+        @Default(value= "true") Boolean confirmable,
+        @Optional String host,
+        @Optional Integer port,
+        String path,
+        @Optional List< String > queryParameters,
+        String responseHandler ) throws Exception
     {
         return doRequest( event, CoAP.Code.GET, confirmable, host, port, path, queryParameters, responseHandler );
     }
@@ -260,7 +279,13 @@ public class CoapClientConnector
      * @throws Exception
      */
     @Processor
-    public MuleEvent put( MuleEvent event, @Default(value= "true") Boolean confirmable, @Optional String host, @Optional Integer port, String path, @Optional List< String > queryParameters ) throws Exception
+    public MuleEvent put(
+        MuleEvent event,
+        @Default(value= "true") Boolean confirmable,
+        @Optional String host,
+        @Optional Integer port,
+        String path,
+        @Optional List< String > queryParameters ) throws Exception
     {
         return doRequest( event, CoAP.Code.PUT, confirmable, host, port, path, queryParameters, null );
     }
@@ -275,8 +300,14 @@ public class CoapClientConnector
      * @throws Exception
      */
     @Processor
-    public MuleEvent asyncPut( MuleEvent event, @Default(value= "true") Boolean confirmable, @Optional String host, @Optional Integer port, String path, @Optional List< String > queryParameters, String responseHandler )
-        throws Exception
+    public MuleEvent asyncPut(
+        MuleEvent event,
+        @Default(value= "true") Boolean confirmable,
+        @Optional String host,
+        @Optional Integer port,
+        String path,
+        @Optional List< String > queryParameters,
+        String responseHandler ) throws Exception
     {
         return doRequest( event, CoAP.Code.PUT, confirmable, host, port, path, queryParameters, responseHandler );
     }
@@ -290,7 +321,13 @@ public class CoapClientConnector
      * @throws Exception
      */
     @Processor
-    public MuleEvent post( MuleEvent event, @Default(value= "true") Boolean confirmable, @Optional String host, @Optional Integer port, String path, @Optional List< String > queryParameters ) throws Exception
+    public MuleEvent post(
+        MuleEvent event,
+        @Default(value= "true") Boolean confirmable,
+        @Optional String host,
+        @Optional Integer port,
+        String path,
+        @Optional List< String > queryParameters ) throws Exception
     {
         return doRequest( event, CoAP.Code.POST, confirmable, host, port, path, queryParameters, null );
     }
@@ -305,8 +342,14 @@ public class CoapClientConnector
      * @throws Exception
      */
     @Processor
-    public MuleEvent asyncPost( MuleEvent event, @Default(value= "true") Boolean confirmable, @Optional String host, @Optional Integer port, String path, @Optional List< String > queryParameters, String responseHandler )
-        throws Exception
+    public MuleEvent asyncPost(
+        MuleEvent event,
+        @Default(value= "true") Boolean confirmable,
+        @Optional String host,
+        @Optional Integer port,
+        String path,
+        @Optional List< String > queryParameters,
+        String responseHandler ) throws Exception
     {
         // int type= MediaTypeRegistry.parse( mediatype );
         // if ( type == MediaTypeRegistry.UNDEFINED ) throw new Exception(
@@ -322,7 +365,13 @@ public class CoapClientConnector
      * @throws Exception
      */
     @Processor
-    public MuleEvent delete( MuleEvent event, @Default(value= "true") Boolean confirmable, @Optional String host, @Optional Integer port, String path, @Optional List< String > queryParameters ) throws Exception
+    public MuleEvent delete(
+        MuleEvent event,
+        @Default(value= "true") Boolean confirmable,
+        @Optional String host,
+        @Optional Integer port,
+        String path,
+        @Optional List< String > queryParameters ) throws Exception
     {
 
         return doRequest( event, CoAP.Code.DELETE, confirmable, host, port, path, queryParameters, null );
@@ -336,8 +385,14 @@ public class CoapClientConnector
      * @throws Exception
      */
     @Processor
-    public MuleEvent asyncDelete( MuleEvent event, @Default(value= "true") Boolean confirmable, @Optional String host, @Optional Integer port, String path, @Optional List< String > queryParameters, String responseHandler )
-        throws Exception
+    public MuleEvent asyncDelete(
+        MuleEvent event,
+        @Default(value= "true") Boolean confirmable,
+        @Optional String host,
+        @Optional Integer port,
+        String path,
+        @Optional List< String > queryParameters,
+        String responseHandler ) throws Exception
     {
 
         return doRequest( event, CoAP.Code.DELETE, confirmable, host, port, path, queryParameters, responseHandler );
@@ -363,14 +418,14 @@ public class CoapClientConnector
                 public void onError()
                 {
                     String uri= client.getURI();
-                    CoapObserveRelation relation= relations.get( uri );
+                    CoapObserveRelation relation= dynamicRelations.get( uri );
                     if ( relation != null )
                     {
                         if ( relation.isCanceled() )
                         {
-                            relations.remove( uri );
+                            dynamicRelations.remove( uri );
                             relation= client.observe( this );
-                            relations.put( uri, relation );
+                            dynamicRelations.put( uri, relation );
                         }
                         else
                         {
@@ -405,17 +460,17 @@ public class CoapClientConnector
                 }
 
             };
-            
-        CoapObserveRelation relation= relations.get( client.getURI() );
+
+        CoapObserveRelation relation= dynamicRelations.get( client.getURI() );
         if ( relation != null )
         {
             // only one observe relation allowed per connector & path
             // TODO maybe configurable whether proactive ot not
             relation.proactiveCancel();
-            relations.remove( client.getURI() );
+            dynamicRelations.remove( client.getURI() );
         }
         relation= client.observe( handler );
-        relations.put( client.getURI(), relation );
+        dynamicRelations.put( client.getURI(), relation );
 
     }
 
@@ -427,14 +482,26 @@ public class CoapClientConnector
     @Processor
     public void stopObserve( @Optional String host, @Optional Integer port, String path, @Optional List< String > queryParameters ) throws Exception
     {
-        String uri= getUri( host, port, path, toQueryString( queryParameters ));
-        CoapObserveRelation relation= relations.get( uri );
+        String uri= getUri( host, port, path, toQueryString( queryParameters ) );
+        CoapObserveRelation relation= dynamicRelations.get( uri );
         if ( relation != null )
         {
             relation.proactiveCancel();
-            relations.remove( uri );
+            dynamicRelations.remove( uri );
         }
-        //TODO warn when no relation found?
+        //TODO warn when no relation found
+    }
+
+    /**
+     * listObservations
+     * @return list of active dynamic observations
+     */
+    @Processor
+    public List< String > listObservations()
+    {
+        CopyOnWriteArrayList< String > list= new CopyOnWriteArrayList< String >();
+        list.addAll( dynamicRelations.keySet() );
+        return list;
     }
 
     /**
@@ -446,25 +513,24 @@ public class CoapClientConnector
      *             error produced while processing the payload
      */
     @Source
-    public void observe( final SourceCallback callback, @Optional String host, @Optional Integer port, String path, @Optional List< String > queryParameters )
-        throws Exception
+    public void observe( final SourceCallback callback, @Optional String host, @Optional Integer port, String path, @Optional List< String > queryParameters ) throws Exception
     {
         final CoapClient client= createClient( host, port, path, toQueryString( queryParameters ) );
-        // TODO retry mechanism
+
         CoapObserveRelation relation= client.observe( new CoapHandler()
             {
                 @Override
                 public void onError()
                 {
                     String uri= client.getURI();
-                    CoapObserveRelation relation= relations.get( uri );
+                    CoapObserveRelation relation= staticRelations.get( uri );
                     if ( relation != null )
                     {
                         if ( relation.isCanceled() )
                         {
-                            relations.remove( uri );
+                            staticRelations.remove( uri );
                             relation= client.observe( this );
-                            relations.put( uri, relation );
+                            staticRelations.put( uri, relation );
                         }
                         else
                         {
@@ -499,9 +565,7 @@ public class CoapClientConnector
                 }
 
             } );
-        // TODO interacts with dynamic created observe mechanism: review
-        relations.put( client.getURI(), relation );
-
+        staticRelations.put( client.getURI(), relation );
     }
 
     /**
@@ -617,7 +681,15 @@ public class CoapClientConnector
     }
 
     // TODO add custom timeout, endpoint, networkconfig?
-    private MuleEvent doRequest( MuleEvent event, final Code requestCode, Boolean confirmable, String host, Integer port, String path, List< String > queryParameters, String handlerName ) throws Exception
+    private MuleEvent doRequest(
+        MuleEvent event,
+        final Code requestCode,
+        Boolean confirmable,
+        String host,
+        Integer port,
+        String path,
+        List< String > queryParameters,
+        String handlerName ) throws Exception
     {
         CoapHandler handler= null;
 
@@ -717,23 +789,6 @@ public class CoapClientConnector
 
     }
 
-    // private void checkSucces( CoapResponse response, Request request ) throws
-    // Exception
-    // {
-    // if ( response == null )
-    // {
-    // throw new ResponseTimeoutException( request.getURI(), request.getType(),
-    // request.getCode() );
-    // }
-    // else if ( !response.isSuccess() )
-    // {
-    // throw new Exception(
-    // "coap response code ( " + response.getCode().toString() + " ) is mapped
-    // to failure." + "\n while doing request: " + request.getType().toString()
-    // + "-"
-    // + request.getCode().toString() + "\n on uri: " + request.getURI() );
-    // } ;
-    // }
 
     private MuleMessage createMuleMessage( CoapResponse response, CoapClient client, Code requestCode )
     {
