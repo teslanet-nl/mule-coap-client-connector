@@ -1,4 +1,18 @@
-package nl.teslanet.mule.connectors.coap.client;
+/*******************************************************************************
+ * Copyright (c) 2017, 2018 (teslanet.nl) Rogier Cobben.
+ * 
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * and Eclipse Public License - v 2.0 which accompany this distribution.
+ * 
+ * The Eclipse Public License is available at
+ *    http://www.eclipse.org/legal/epl-v20.html
+ * 
+ * Contributors:
+ *    (teslanet.nl) Rogier Cobben - initial creation
+ ******************************************************************************/
+
+package nl.teslanet.mule.transport.coap.client;
 
 
 import java.io.InputStream;
@@ -52,18 +66,21 @@ import org.mule.transformer.types.DataTypeFactory;
 import org.mule.transport.NullPayload;
 import org.mule.util.IOUtils;
 
-import nl.teslanet.mule.connectors.coap.client.config.CoAPClientConfig;
-import nl.teslanet.mule.connectors.coap.client.error.ErrorHandler;
-import nl.teslanet.mule.connectors.coap.exceptions.ResponseTimeoutException;
-import nl.teslanet.mule.connectors.coap.options.Options;
-import nl.teslanet.mule.connectors.coap.options.PropertyNames;
+import nl.teslanet.mule.transport.coap.client.config.CoAPClientConfig;
+import nl.teslanet.mule.transport.coap.client.error.ErrorHandler;
+import nl.teslanet.mule.transport.coap.commons.options.Options;
+import nl.teslanet.mule.transport.coap.commons.options.PropertyNames;
 
 
-@Connector(name= "coap-client", friendlyName= "CoAP Client", schemaVersion= "1.0"
-// namespace= "http://www.teslanet.nl/mule/connectors/coap/client",
-// schemaLocation=
-// "http://www.teslanet.nl/mule/connectors/coap/client/1.0/mule-coap-client.xsd"
+@Connector
+(
+    name= "coap-client", 
+    friendlyName= "CoAP Client", 
+    schemaVersion= "1.0",
+    // namespace= "http://www.mulesoft.org/schema/mule/coap-client",
+    schemaLocation= "http://www.teslanet.nl/schema/mule/coap-server/1.0/mule-coap-client.xsd"
 )
+
 @OnException(handler= ErrorHandler.class)
 public class CoapClientConnector
 {

@@ -1,17 +1,26 @@
-package nl.teslanet.mule.connectors.coap.client.config;
+/*******************************************************************************
+ * Copyright (c) 2017, 2018 (teslanet.nl) Rogier Cobben.
+ * 
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * and Eclipse Public License - v 2.0 which accompany this distribution.
+ * 
+ * The Eclipse Public License is available at
+ *    http://www.eclipse.org/legal/epl-v20.html
+ * 
+ * Contributors:
+ *    (teslanet.nl) Rogier Cobben - initial creation
+ ******************************************************************************/
+
+package nl.teslanet.mule.transport.coap.client.config;
 
 import java.net.InetSocketAddress;
-import java.net.URI;
-import java.net.URISyntaxException;
 
-import org.eclipse.californium.core.coap.CoAP;
 import org.mule.api.annotations.Configurable;
 import org.mule.api.annotations.components.Configuration;
 import org.mule.api.annotations.display.Placement;
 import org.mule.api.annotations.param.Default;
 import org.mule.api.annotations.param.Optional;
-
-import nl.teslanet.mule.connectors.coap.client.config.EndpointConfig;
 
 @Configuration(friendlyName = "Configuration")
 public class CoAPClientConfig extends EndpointConfig
