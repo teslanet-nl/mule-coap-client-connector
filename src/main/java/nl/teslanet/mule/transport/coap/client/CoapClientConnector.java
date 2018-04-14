@@ -71,14 +71,23 @@ import nl.teslanet.mule.transport.coap.client.error.ErrorHandler;
 import nl.teslanet.mule.transport.coap.commons.options.Options;
 import nl.teslanet.mule.transport.coap.commons.options.PropertyNames;
 
-
+/**
+ * Mule CoAP connector - CoapClient. 
+ * The CoapClient Connector can be used in Mule applications to implement CoAP clients as defined in {@see http://tools.ietf.org/html/rfc7252}.
+ * A CoAP client issues requests on resources that reside on a CoAP server. 
+ * On these resources GET, POST, PUT, DELETE and Observer requests can be issued from Mule 
+ * applications using this Connector.
+ * The client CoAP endpoint has a number of configuration parameters that can be used to tune behavior of the connector. 
+ * Apart from host and port, these parameters have sensible defaults and need only to be set for specific needs.     
+ */
 @Connector
 (
     name= "coap-client", 
     friendlyName= "CoAP Client", 
     schemaVersion= "1.0",
+    minMuleVersion="3.8.0",
     // namespace= "http://www.mulesoft.org/schema/mule/coap-client",
-    schemaLocation= "http://www.teslanet.nl/schema/mule/coap-server/1.0/mule-coap-client.xsd"
+    schemaLocation= "http://www.teslanet.nl/schema/mule/coap-client/1.0/mule-coap-client.xsd"
 )
 
 @OnException(handler= ErrorHandler.class)
@@ -119,6 +128,10 @@ public class CoapClientConnector
         }
     }
 
+    /**
+     *  The startConnector method creates an CoAP endpoint using the configuration parameters.
+     *  @throws ConnectionException The CoAP endpoint could not be created.
+     */    
     @Start
     public void startConnector() throws ConnectionException
     {
@@ -137,7 +150,11 @@ public class CoapClientConnector
         }
     }
 
-    // A class with @Connector must contain exactly one method annotated with
+    /**
+     *  The stopConnector method terminates the CoAP endpoint. 
+     *  Resources are freed.
+     *  Observing clients will be notified using a proactive cancel.
+     */    
     @Stop
     public void stopConnector()
     {
@@ -160,6 +177,12 @@ public class CoapClientConnector
         }
     }
 
+    /**
+     * Create the CoAP endpoint.
+     * @param config The configuration parameters for the CoAP Endpoint.
+     * @return The CoAP created Endpoint.
+     * @throws Exception Is thrown when an unexpected error occurs
+     */        
     private CoapEndpoint createEndpoint( CoAPClientConfig config ) throws Exception
     {
         CoapEndpoint endpoint= null;
@@ -222,11 +245,13 @@ public class CoapClientConnector
     }
 
     /**
-     * ping processor, that pings a CoAP resource
-     * 
+     * Ping messageprocessor, that pings a CoAP resource
+     * @param path The resource that is pinged.
      * @return true if ping was successful, otherwise false
-     * @throws Exception
+     * @throws Exception Is thrown when an unexpected error occurs
      */
+    //TODO add optional host port, 
+    //TODO path is useful here?
     @Processor
     public Boolean ping( String path ) throws Exception
     {
@@ -237,11 +262,13 @@ public class CoapClientConnector
     }
 
     /**
-     * discover processor, that retrieves information about CoAP resources
-     * 
-     * @return true if ping was successful, otherwise false
-     * @throws Exception
+     * Discover messageprocessor retrieves information about CoAP resources from a server.
+     * @param  queryParameters The queryparameters for discovery.
+     * @return A Set of Weblinks describing the resources on the server.
+     * @throws Exception Is thrown when an unexpected error occurs
      */
+    //TODO add optional host port 
+
     @Processor
     public Set< WebLink > discover( @Optional List< String > queryParameters ) throws Exception
     {
@@ -250,10 +277,16 @@ public class CoapClientConnector
     }
 
     /**
-     * get processor that retrieves a CoAP resource
-     * 
-     * @return Response of the coap service
-     * @throws Exception
+     * Get messageprocessor retrieves the contents of a CoAP resource from a Server.
+     * The resource url can be set, overriding connector configuration.
+     * @param confirmable When true the server must confirm the request.
+     * @param host The host address of the server.
+     * @param port The port the server is listening on.
+     * @param path The path of the resource.
+     * @param queryParameters List of query parameters.
+     * @return On success the contents of the CoAP resource is returned in a byte array( byte[] ) as message payload. 
+     * Otherwise the payload will be empty.
+     * @throws Exception Is thrown when an unexpected error occurs
      */
     @Processor
     public MuleEvent get(
@@ -268,11 +301,16 @@ public class CoapClientConnector
     }
 
     /**
-     * get-async processor that retrieves a CoAP resource. The response is
-     * handled asynchronously by specified handler.
-     * 
-     * @return Response of the coap service
-     * @throws Exception
+     * Async-Get messageprocessor asynchronously retrieves the contents of a CoAP resource from a Server.
+     * The resource url can be set, overriding connector configuration.
+     * @param confirmable When true the server must confirm the request.
+     * @param host The host address of the server.
+     * @param port The port the server is listening on.
+     * @param path The path of the resource.
+     * @param queryParameters List of query parameters.
+     * @param responseHandler Name of the handler that will process the returned response.
+     * @return The MuleMessage is returned unchanged.
+     * @throws Exception Is thrown when an unexpected error occurs
      */
     @Processor
     public MuleEvent asyncGet(
@@ -288,12 +326,16 @@ public class CoapClientConnector
     }
 
     /**
-     * put processor that delivers a resource the the CoAP-service
-     *
-     * @param payload
-     *            Body of the message to be sent.
-     * @return response body of the CoAP-service
-     * @throws Exception
+     * Put messageprocessor changes the contents of a CoAP resource on a Server.
+     * The resource url can be set, overriding connector configuration.
+     * @param confirmable When true the server must confirm the request.
+     * @param host The host address of the server.
+     * @param port The port the server is listening on.
+     * @param path The path of the resource.
+     * @param queryParameters List of query parameters.
+     * @return On success the response payload - if any - is returned in a byte array( byte[] ) as message payload. 
+     * Otherwise the payload will be empty.
+     * @throws Exception Is thrown when an unexpected error occurs
      */
     @Processor
     public MuleEvent put(
@@ -308,13 +350,16 @@ public class CoapClientConnector
     }
 
     /**
-     * async put processor that delivers a resource the the CoAP-service. The
-     * response is handled asynchronously by specified handler.
-     *
-     * @param payload
-     *            Body of the message to be sent.
-     * @return response body of the CoAP-service
-     * @throws Exception
+     * Async-Put messageprocessor asynchronously changes the contents of a CoAP resource on a Server.
+     * The resource url can be set, overriding connector configuration.
+     * @param confirmable When true the server must confirm the request.
+     * @param host The host address of the server.
+     * @param port The port the server is listening on.
+     * @param path The path of the resource.
+     * @param queryParameters List of query parameters.
+     * @param responseHandler Name of the handler that will process the returned response.
+     * @return The MuleMessage is returned unchanged.
+     * @throws Exception Is thrown when an unexpected error occurs
      */
     @Processor
     public MuleEvent asyncPut(
@@ -330,12 +375,16 @@ public class CoapClientConnector
     }
 
     /**
-     * post processor that sends a message to a CoAP-resource
-     *
-     * @param payload
-     *            Body of the message to be sent.
-     * @return response body of the CoAP-service
-     * @throws Exception
+     * Post messageprocessor delivers contents to a CoAP resource on a Server.
+     * The resource url can be set, overriding connector configuration.
+     * @param confirmable When true the server must confirm the request.
+     * @param host The host address of the server.
+     * @param port The port the server is listening on.
+     * @param path The path of the resource.
+     * @param queryParameters List of query parameters.
+     * @return On success the response payload - if any - is returned in a byte array( byte[] ) as message payload. 
+     * Otherwise the payload will be empty.
+     * @throws Exception Is thrown when an unexpected error occurs
      */
     @Processor
     public MuleEvent post(
@@ -350,13 +399,16 @@ public class CoapClientConnector
     }
 
     /**
-     * async post processor that sends a message to a CoAP-resource. The
-     * response is handled asynchronously by specified handler.
-     *
-     * @param payload
-     *            Body of the message to be sent.
-     * @return response body of the CoAP-service
-     * @throws Exception
+     * Async-Put messageprocessor asynchronously delivers contents to a CoAP resource on a Server.
+     * The resource url can be set, overriding connector configuration.
+     * @param confirmable When true the server must confirm the request.
+     * @param host The host address of the server.
+     * @param port The port the server is listening on.
+     * @param path The path of the resource.
+     * @param queryParameters List of query parameters.
+     * @param responseHandler Name of the handler that will process the returned response.
+     * @return The MuleMessage is returned unchanged.
+     * @throws Exception Is thrown when an unexpected error occurs
      */
     @Processor
     public MuleEvent asyncPost(
@@ -376,10 +428,16 @@ public class CoapClientConnector
     }
 
     /**
-     * delete processor that sends a delete request to a CoAP-resource
-     *
-     * @return response of the CoAP-service
-     * @throws Exception
+     * Delete messageprocessor deletes a CoAP resource on a Server.
+     * The resource url can be set, overriding connector configuration.
+     * @param confirmable When true the server must confirm the request.
+     * @param host The host address of the server.
+     * @param port The port the server is listening on.
+     * @param path The path of the resource.
+     * @param queryParameters List of query parameters.
+     * @return On success the response payload - if any - is returned in a byte array( byte[] ) as message payload. 
+     * Otherwise the payload will be empty.
+     * @throws Exception Is thrown when an unexpected error occurs
      */
     @Processor
     public MuleEvent delete(
@@ -395,11 +453,16 @@ public class CoapClientConnector
     }
 
     /**
-     * async delete processor that sends a delete request to a CoAP-resource.
-     * The response is handled asynchronously by specified handler.
-     *
-     * @return response of the CoAP-service
-     * @throws Exception
+     * Async-Delete messageprocessor asynchronously deletes a CoAP resource on a Server.
+     * The resource url can be set, overriding connector configuration.
+     * @param confirmable When true the server must confirm the request.
+     * @param host The host address of the server.
+     * @param port The port the server is listening on.
+     * @param path The path of the resource.
+     * @param queryParameters List of query parameters.
+     * @param responseHandler Name of the handler that will process the returned response.
+     * @return The MuleMessage is returned unchanged.
+     * @throws Exception Is thrown when an unexpected error occurs
      */
     @Processor
     public MuleEvent asyncDelete(
@@ -416,10 +479,15 @@ public class CoapClientConnector
     }
 
     /**
-     * startObserve processor that starts observe of a CoAP-resource
-     *
-     * @return response of the CoAP-service
-     * @throws Exception
+     * Start-observe messageprocessor dynamically initiates observation of a CoAP resource on a Server.
+     * The resource url can be set, overriding connector configuration.
+     * @param host The host address of the server.
+     * @param port The port the server is listening on.
+     * @param path The path of the resource.
+     * @param queryParameters List of query parameters.
+     * @param responseHandler Name of the handler that will process the resource updates received from server.
+     * @return The MuleMessage is returned unchanged.
+     * @throws Exception Is thrown when an unexpected error occurs
      */
     @Processor
     public void startObserve( @Optional String host, @Optional Integer port, String path, @Optional List< String > queryParameters, String responseHandler ) throws Exception
@@ -492,9 +560,14 @@ public class CoapClientConnector
     }
 
     /**
-     * stopObserve processor that stops observe of a CoAP-resource
-     *
-     * @throws Exception
+     * Stop-observe messageprocessor ends a dynamically set observation of a CoAP resource on a Server.
+     * The resource url can be set, overriding connector configuration.
+     * @param host The host address of the server.
+     * @param port The port the server is listening on.
+     * @param path The path of the resource.
+     * @param queryParameters List of query parameters.
+     * @return The MuleMessage is returned unchanged.
+     * @throws Exception Is thrown when an unexpected error occurs
      */
     @Processor
     public void stopObserve( @Optional String host, @Optional Integer port, String path, @Optional List< String > queryParameters ) throws Exception
@@ -510,8 +583,14 @@ public class CoapClientConnector
     }
 
     /**
-     * listObservations
-     * @return list of active dynamic observations
+     * List-Observations messageprocessor retrieves the list of active dynamic observations on a CoAP resource.
+     * The resource url can be set, overriding connector configuration.
+     * @param host The host address of the server.
+     * @param port The port the server is listening on.
+     * @param path The path of the resource.
+     * @param queryParameters List of query parameters.
+     * @return The List of .
+     * @throws Exception Is thrown when an unexpected error occurs
      */
     @Processor
     public List< String > listObservations()
@@ -522,12 +601,17 @@ public class CoapClientConnector
     }
 
     /**
-     * Custom Message Source
-     *
-     * @param callback
-     *            The sourcecallback used to dispatch message to the flow
-     * @throws Exception
-     *             error produced while processing the payload
+     * Observe messagesource observes a CoAP resource on a Server.
+     * The observation is static - meaning the observation will be active as long as the Mule-flow is running.
+     * The resource url can be set, overriding connector configuration.
+     * @param host The host address of the server.
+     * @param port The port the server is listening on.
+     * @param path The path of the resource.
+     * @param queryParameters List of query parameters.
+     * @return Updates on the resource the server sends are returned as a MuleMessage. 
+     * The update contents - if any - is delivered as a byte array ( byte[] ) message payload. 
+     * Otherwise the payload will be empty.
+     * @throws Exception Is thrown when an unexpected error occurs
      */
     @Source
     public void observe( final SourceCallback callback, @Optional String host, @Optional Integer port, String path, @Optional List< String > queryParameters ) throws Exception
@@ -586,14 +670,14 @@ public class CoapClientConnector
     }
 
     /**
-     * Custom Message Source
-     *
-     * @param callback
-     *            The sourcecallback used to dispatch message to the flow
-     * @param name
-     *            The sourcecallback used to dispatch message to the flow
-     * @throws Exception
-     *             error produced while processing the payload
+     * Handle-Response messagesource handles responses on asynchronous requests that reference this handler.
+     * The Handler can process the responses of multiple requests and it the type of requests can differ. 
+     * So one Handler could be used to process responses to asynchronous Get, Put, Post, Delete or Observe requests.
+     * @param handlerName The name of the hander. Used by asynchronous requests to reference the handler.
+     * @return Responses on asynchronous requests are returned as a MuleMessage. 
+     * The contents - if any - is delivered as a byte array ( byte[] ) message payload. 
+     * Otherwise the payload will be empty.
+     * @throws Exception Is thrown when an unexpected 
      */
     @Source
     public void handleResponse( final SourceCallback callback, String handlerName ) throws Exception
@@ -603,41 +687,16 @@ public class CoapClientConnector
         handlers.put( handlerName, callback );
     }
 
-    public CoAPClientConfig getConfig()
-    {
-        return config;
-    }
 
-    public void setConfig( CoAPClientConfig config )
-    {
-        this.config= config;
-    }
 
-    /*
-     * private void throwWhenInvalidResource( String resource ) throws Exception
-     * { if ( !verifyResource( resource ) ) { throw new Exception("coap: '" +
-     * resource + ", is not a valid resource. Available resources: \n[" +
-     * resources.toString() + " ]" ); }; }
-     */
-
-    // public boolean verifyResource() throws URISyntaxException
-    // {
-    // WebLink found= null;
-    //
-    // if ( resources != null && !resources.isEmpty() )
-    // {
-    // for ( WebLink link : resources )
-    // {
-    // if ( link.getURI().equals( "/" ) )
-    // {
-    // found= link;
-    // }
-    // }
-    // } ;
-    // return found != null;
-    //
-    // }
-
+    /**
+     * Get an URI object describing the given CoAP resource.
+     * @param host The host address of the server.
+     * @param port The port the server is listening on.
+     * @param path The path of the resource.
+     * @param query String containing query parameters.
+     * @return The URI object. 
+     */ 
     public URI getURI( String host, Integer port, String path, String query ) throws URISyntaxException
     {
         String scheme= ( config.isSecure() ? CoAP.COAP_SECURE_URI_SCHEME : CoAP.COAP_URI_SCHEME );
@@ -661,11 +720,24 @@ public class CoapClientConnector
         return new URI( scheme, null, uriHost, uriPort, path, query, null );
     }
 
+    /**
+     * Get a String object containing the uri of the given CoAP resource.
+     * @param host The host address of the server.
+     * @param port The port the server is listening on.
+     * @param path The path of the resource.
+     * @param query String containing query parameters.
+     * @return The String containing the uri. 
+     */     
     public String getUri( String host, Integer port, String path, String query ) throws URISyntaxException
     {
         return getURI( host, port, path, query ).toString();
     }
 
+    /**
+     * Get a querystring containing containing query parameters that can be use as part of a an Uri-string.
+     * @param queryParameters List of query parameters.
+     * @return The querystring. 
+     */     
     private String toQueryString( List< String > queryParameters )
     {
         if ( queryParameters == null ) return null;
@@ -681,6 +753,15 @@ public class CoapClientConnector
         return builder.toString();
     }
 
+    /**
+     * Create a client object that can be used to issue requests.
+     * @param host The host address of the server.
+     * @param port The port the server is listening on.
+     * @param path The path of the resource.
+     * @param query String containing query parameters.
+     * @return The client object.
+     * @exception MalformedEndpointException The client uri is invalid.
+     */     
     private CoapClient createClient( String host, Integer port, String path, String query ) throws MalformedEndpointException
     {
         CoapClient client;
@@ -697,6 +778,19 @@ public class CoapClientConnector
         return client;
     }
 
+    /**
+     * Send request to the CoAP server.
+     * @param event The input event.
+     * @param requestCode The request type.
+     * @param confirmable When true the request must be confirmed by the server.
+     * @param host The host address of the server.
+     * @param port The port the server is listening on.
+     * @param path The path of the resource.
+     * @param queryParameters List of query parameters.
+     * @param handlerName Optional name of the handler. Use when the response should be handled asynchronously 
+     * @return The response Mule event containing the response message.
+     * @exception Exception An unexpected error occurred.
+     */    
     // TODO add custom timeout, endpoint, networkconfig?
     private MuleEvent doRequest(
         MuleEvent event,
@@ -807,6 +901,14 @@ public class CoapClientConnector
     }
 
 
+    /**
+     * Create response MuleMessage. The payload will be set to the CoAP payload. 
+     * CoAP metadata including CoAP options will be added as inbound properties.  
+     * @param response the CoAP response that needs to be delivered into the Mule flow
+     * @param client The client object tht issued the request.
+     * @param requestCode The type of request that was issued.
+     * @return MuleMessage created.
+     */
     private MuleMessage createMuleMessage( CoapResponse response, CoapClient client, Code requestCode )
     {
         DefaultMuleMessage result= null;
@@ -848,6 +950,15 @@ public class CoapClientConnector
         return result;
     }
 
+    /**
+     * Create response MuleEvent. The payload will be set to the CoAP payload. 
+     * CoAP metadata including CoAP options will be added as inbound properties.  
+     * @param response the CoAP response that needs to be delivered into the Mule flow
+     * @param client The client object tht issued the request.
+     * @param requestCode The type of request that was issued.
+     * @param rewriteEvent The input event.
+     * @return MuleMessage created.
+     */
     private MuleEvent createMuleEvent( CoapResponse response, CoapClient client, Code requestCode, MuleEvent rewriteEvent )
     {
         MuleMessage responseMuleMessage= createMuleMessage( response, client, requestCode );
@@ -856,14 +967,40 @@ public class CoapClientConnector
         return result;
     }
 
+    /**
+     * Gets the Mule context.
+     * @return The Mule context.
+     */ 
     public MuleContext getMuleContext()
     {
         return muleContext;
     }
 
+     /**
+      * Sets the The Mule context. The context will be set by Mule on application start.
+      * @param context The Mule context.
+      */  
     public void setMuleContext( MuleContext context )
     {
         this.muleContext= context;
+    }
+    
+    /**
+     * Gets the Connector configuration.
+     * @return The Connector configuration.
+     */    
+    public CoAPClientConfig getConfig()
+    {
+        return config;
+    }
+
+    /**
+     * Sets the Connector configuration. The configuration object will be set by Mule on application start.
+     * @param config The Connector configuration.
+     */  
+    public void setConfig( CoAPClientConfig config )
+    {
+        this.config= config;
     }
 
 }
