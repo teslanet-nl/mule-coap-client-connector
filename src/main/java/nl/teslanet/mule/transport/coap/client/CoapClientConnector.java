@@ -586,12 +586,12 @@ public class CoapClientConnector
 
     /**
      * List-Observations messageprocessor retrieves the list of active dynamic observations on a CoAP resource.
-     * The resource url can be set, overriding connector configuration.
+     * The list contains the CoAP resource url that is being observed dynamically.
      * @param host The host address of the server.
      * @param port The port the server is listening on.
      * @param path The path of the resource.
      * @param queryParameters List of query parameters.
-     * @return The List of active dynamic observations.
+     * @return The List of urls of active dynamic observations.
      * @throws Exception Is thrown when an unexpected error occurs
      */
     @Processor
