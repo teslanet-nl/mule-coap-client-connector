@@ -87,7 +87,9 @@ import nl.teslanet.mule.transport.coap.commons.options.PropertyNames;
     schemaVersion= "1.0",
     minMuleVersion="3.8.0",
     // namespace= "http://www.mulesoft.org/schema/mule/coap-client",
-    schemaLocation= "http://www.teslanet.nl/schema/mule/coap-client/1.0/mule-coap-client.xsd"
+    schemaLocation= "http://www.teslanet.nl/schema/mule/coap-client/1.0/mule-coap-client.xsd",
+    keywords="coap"
+    
 )
 
 @OnException(handler= ErrorHandler.class)
@@ -245,7 +247,7 @@ public class CoapClientConnector
     }
 
     /**
-     * Ping messageprocessor, that pings a CoAP resource
+     * The Ping messageprocessor checks whether a CoAP resource is reachable.
      * @param path The resource that is pinged.
      * @return true if ping was successful, otherwise false
      * @throws Exception Is thrown when an unexpected error occurs
@@ -486,9 +488,9 @@ public class CoapClientConnector
      * @param path The path of the resource.
      * @param queryParameters List of query parameters.
      * @param responseHandler Name of the handler that will process the resource updates received from server.
-     * @return The MuleMessage is returned unchanged.
      * @throws Exception Is thrown when an unexpected error occurs
      */
+    //TODO: return mule event?
     @Processor
     public void startObserve( @Optional String host, @Optional Integer port, String path, @Optional List< String > queryParameters, String responseHandler ) throws Exception
     {
@@ -566,9 +568,9 @@ public class CoapClientConnector
      * @param port The port the server is listening on.
      * @param path The path of the resource.
      * @param queryParameters List of query parameters.
-     * @return The MuleMessage is returned unchanged.
      * @throws Exception Is thrown when an unexpected error occurs
      */
+    //TODO: return mule event?
     @Processor
     public void stopObserve( @Optional String host, @Optional Integer port, String path, @Optional List< String > queryParameters ) throws Exception
     {
@@ -589,7 +591,7 @@ public class CoapClientConnector
      * @param port The port the server is listening on.
      * @param path The path of the resource.
      * @param queryParameters List of query parameters.
-     * @return The List of .
+     * @return The List of active dynamic observations.
      * @throws Exception Is thrown when an unexpected error occurs
      */
     @Processor
@@ -609,8 +611,8 @@ public class CoapClientConnector
      * @param path The path of the resource.
      * @param queryParameters List of query parameters.
      * @return Updates on the resource the server sends are returned as a MuleMessage. 
-     * The update contents - if any - is delivered as a byte array ( byte[] ) message payload. 
-     * Otherwise the payload will be empty.
+     * CoAP message contents - if any - are delivered as a byte array ( byte[] ) message payload. 
+     * When there are no CoAP contents the payload will be empty.
      * @throws Exception Is thrown when an unexpected error occurs
      */
     @Source
@@ -675,8 +677,8 @@ public class CoapClientConnector
      * So one Handler could be used to process responses to asynchronous Get, Put, Post, Delete or Observe requests.
      * @param handlerName The name of the hander. Used by asynchronous requests to reference the handler.
      * @return Responses on asynchronous requests are returned as a MuleMessage. 
-     * The contents - if any - is delivered as a byte array ( byte[] ) message payload. 
-     * Otherwise the payload will be empty.
+     * CoAP response contents - if any - are delivered as a byte array ( byte[] ) message payload. 
+     * When there are no CoAP contents the payload will be empty.
      * @throws Exception Is thrown when an unexpected 
      */
     @Source

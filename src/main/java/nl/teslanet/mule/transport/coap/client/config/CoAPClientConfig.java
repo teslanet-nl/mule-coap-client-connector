@@ -25,10 +25,16 @@ import org.mule.api.annotations.param.Optional;
 @Configuration(friendlyName = "Configuration")
 public class CoAPClientConfig extends EndpointConfig
 {
+    /**
+     * The CoAP server hostname or ip address by which the server is reachable.
+     */
     @Configurable
     @Placement(tab= "General", group="Connect to")
     private String host= null;
 
+    /**
+     * The port the CoAP server is listening on. 
+     */
     @Configurable
     @Optional
     @Placement(tab= "General", group="Connect to")
@@ -36,12 +42,19 @@ public class CoAPClientConfig extends EndpointConfig
 
     //TODO add base path 
     
+    /**
+     * Flag indicating DTLS will be used to connect to the CoAP server.
+     */
     @Configurable
     @Default( value= "false")
     @Placement(tab= "General", group="Connect to")
     //@FriendlyName(value = false)
     private boolean secure= false;
 
+    /**
+     * Gets the local address.
+     * @return The local socket address to be used by the connector client endpoint. 
+     */
     public InetSocketAddress getLocalAddress()
     {
         int port = 0;
@@ -65,7 +78,8 @@ public class CoAPClientConfig extends EndpointConfig
 	}
 
 
-/**
+    /**
+     * Gets the configured server host.
      * @return the host
      */
     public String getHost()
@@ -74,7 +88,8 @@ public class CoAPClientConfig extends EndpointConfig
     }
 
     /**
-     * @param host the host to set
+     * Sets the configured server host.
+     * @param host The host to set.
      */
     public void setHost( String host )
     {
@@ -82,6 +97,7 @@ public class CoAPClientConfig extends EndpointConfig
     }
 
     /**
+     * Gets the configured server port.
      * @return the port
      */
     public Integer getPort()
@@ -90,6 +106,7 @@ public class CoAPClientConfig extends EndpointConfig
     }
 
     /**
+     * Sets the configured server port.
      * @param port the port to set
      */
     public void setPort( Integer port )
@@ -99,7 +116,8 @@ public class CoAPClientConfig extends EndpointConfig
 
 
     /**
-     * @return the secure
+     * Establish whether the CoAP communication must be secure.
+     * @return the secure flag
      */
     public boolean isSecure()
     {
@@ -107,7 +125,8 @@ public class CoAPClientConfig extends EndpointConfig
 	}
 
     /**
-     * @param secure the secure to set
+     * Sets the flag whether the CoAP communication must be secure.
+     * @param secure The security flag to set.
      */
     public void setSecure( boolean secure )
     {
