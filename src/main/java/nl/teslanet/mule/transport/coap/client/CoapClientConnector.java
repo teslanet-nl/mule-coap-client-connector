@@ -926,9 +926,12 @@ public class CoapClientConnector
         }
         else
         {
-            inboundProps.put( PropertyNames.COAP_REQUEST_CODE, requestCode );
+            //a response received from server
+        	
+        	inboundProps.put( PropertyNames.COAP_REQUEST_CODE, requestCode );
             inboundProps.put( PropertyNames.COAP_REQUEST_URI, client.getURI() );
             inboundProps.put( PropertyNames.COAP_RESPONSE_SUCCESS, new Boolean( response.isSuccess() ) );
+            //TODO: response code toString gives number format (9.99), this is not in line with server connector that uses text format for the property
             inboundProps.put( PropertyNames.COAP_RESPONSE_CODE, response.getCode().toString() );
             Options.fillProperties( response.getOptions(), inboundProps );
 
