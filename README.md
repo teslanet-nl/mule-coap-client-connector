@@ -15,6 +15,8 @@ The other two being the CoapServer Connector and the Mule CoAP Commons component
 The CoapClient Connector adds CoAP client capability to [Mule enterprise service bus](https://www.mulesoft.com/).
 With it Mule applications can access iot-services using the CoAP protocol. 
 
+The complete Mule CoAP Connector documentation can be found on [Teslanet.nl](http://www.teslanet.nl)
+
 # Mule supported versions
 * Mule 3.8.x
 * Mule 3.9.x
