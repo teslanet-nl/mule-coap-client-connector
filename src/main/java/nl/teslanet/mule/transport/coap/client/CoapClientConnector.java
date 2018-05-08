@@ -810,11 +810,12 @@ public class CoapClientConnector
 
         // build request
         MuleMessage muleMessage= event.getMessage();
+        //TODO: tests show NON isn't working
         Request request= new Request( requestCode, ( confirmable ? Type.CON : Type.NON ) );
 
         Object requestPayload= muleMessage.getPayload();
 
-        if ( requestPayload != null && !requestPayload.equals( NullPayload.getInstance() ) )
+        if ( requestPayload != null && ! NullPayload.getInstance().equals( requestPayload ) )
         {
             if ( byte[].class.isAssignableFrom( requestPayload.getClass() ) )
             {
