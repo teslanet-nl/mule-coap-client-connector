@@ -264,17 +264,23 @@ public class CoapClientConnector
     }
 
     /**
-     * Discover messageprocessor retrieves information about CoAP resources from a server.
-     * @param  queryParameters The queryparameters for discovery.
-     * @return A Set of Weblinks describing the resources on the server.
+     * Discover message-processor retrieves information about CoAP resources from a server.
+     * The host and port are optional parameters that override Connector configuration
+     * @param host The host address of the server.
+     * @param port The port the server is listening on,.
+     * @param  queryParameters The optional query-parameters for discovery.
+     * @return A Set of Weblinks describing the resources on the server. When the retrieval of the set of Weblinks failed, null is returned.
      * @throws Exception Is thrown when an unexpected error occurs
      */
-    //TODO add optional host port 
+    //TODO: Hide Californium API from Mule application
 
     @Processor
-    public Set< WebLink > discover( @Optional List< String > queryParameters ) throws Exception
+    public Set< WebLink > discover( 
+            @Optional String host,
+            @Optional Integer port,
+        	@Optional List< String > queryParameters ) throws Exception
     {
-        CoapClient client= createClient( null, null, "/", null );
+        CoapClient client= createClient( host, port, "/", null );
         return client.discover( toQueryString( queryParameters ) );
     }
 
