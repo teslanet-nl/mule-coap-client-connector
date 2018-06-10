@@ -15,11 +15,15 @@
 package nl.teslanet.mule.transport.coap.client;
 
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.cert.CertificateException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -68,9 +72,11 @@ import org.mule.util.IOUtils;
 
 import nl.teslanet.mule.transport.coap.client.config.CoAPClientConfig;
 import nl.teslanet.mule.transport.coap.client.error.ErrorHandler;
+import nl.teslanet.mule.transport.coap.client.error.MalformedUriException;
+import nl.teslanet.mule.transport.coap.client.error.HandlerException;
 import nl.teslanet.mule.transport.coap.commons.options.Options;
 import nl.teslanet.mule.transport.coap.commons.options.PropertyNames;
-
+import nl.teslanet.mule.transport.coap.client.error.EndpointConstructionException;
 /**
  * Mule CoAP connector - CoapClient. 
  * The CoapClient Connector can be used in Mule applications to implement CoAP clients as defined in {@see http://tools.ietf.org/html/rfc7252}.
@@ -113,9 +119,14 @@ public class CoapClientConnector
     private ConcurrentSkipListMap< String, SourceCallback > handlers= new ConcurrentSkipListMap< String, SourceCallback >();
 
     // A class with @Connector must contain exactly one method annotated with
-    // @Connect
+    //TODO: remove when not needed
+    /**
+     * Test connectivity
+     * @throws MalformedUriException cannot form valid uri with given parameters
+     * @throws ConnectionException server could not be reached
+     */
     @TestConnectivity
-    public void test() throws ConnectionException, MalformedEndpointException
+    public void test() throws MalformedUriException, ConnectionException 
     {
         CoapClient client= createClient( null, null, "/", null );
 
@@ -183,9 +194,9 @@ public class CoapClientConnector
      * Create the CoAP endpoint.
      * @param config The configuration parameters for the CoAP Endpoint.
      * @return The CoAP created Endpoint.
-     * @throws Exception Is thrown when an unexpected error occurs
+     * @throws EndpointConstructionException endpoint could not be created with given parameters
      */        
-    private CoapEndpoint createEndpoint( CoAPClientConfig config ) throws Exception
+    private CoapEndpoint createEndpoint( CoAPClientConfig config ) throws EndpointConstructionException
     {
         CoapEndpoint endpoint= null;
 
@@ -202,14 +213,61 @@ public class CoapClientConnector
             // Plugtest test spec
 
             // load the key store
-            KeyStore keyStore= KeyStore.getInstance( "JKS" );
-            InputStream in= IOUtils.getResourceAsStream( config.getKeyStoreLocation(), this.getClass(), true, true );
-            keyStore.load( in, config.getKeyStorePassword().toCharArray() );
+            KeyStore keyStore;
+            try
+            {
+                keyStore= KeyStore.getInstance( "JKS" );
+            }
+            catch ( KeyStoreException e1 )
+            {
+                throw new EndpointConstructionException( "cannot create JKS keystore instance", e1 );
+            }
+            InputStream in;
+            try
+            {
+                in= IOUtils.getResourceAsStream( config.getKeyStoreLocation(), this.getClass(), true, true );
+            }
+            catch ( IOException e1 )
+            {
+                throw new EndpointConstructionException( "cannot load keystore from { " + config.getKeyStoreLocation() + " }", e1 );
+            }
+            try
+            {
+                keyStore.load( in, config.getKeyStorePassword().toCharArray() );
+            }
+            catch ( NoSuchAlgorithmException | CertificateException | IOException e1 )
+            {
+                throw new EndpointConstructionException( "cannot load keystore from { " + config.getKeyStoreLocation() + " } using passwd ***", e1 );
+            }
 
             // load the trust store
-            KeyStore trustStore= KeyStore.getInstance( "JKS" );
-            InputStream inTrust= IOUtils.getResourceAsStream( config.getTrustStoreLocation(), this.getClass(), true, true );
-            trustStore.load( inTrust, config.getTrustStorePassword().toCharArray() );
+            KeyStore trustStore;
+            try
+            {
+                trustStore= KeyStore.getInstance( "JKS" );
+            }
+            catch ( KeyStoreException e1 )
+            {
+                throw new EndpointConstructionException( "cannot create JKS truststore instance", e1 );
+            }
+            //TODO load from from Mule util
+            InputStream inTrust;
+            try
+            {
+                inTrust= IOUtils.getResourceAsStream( config.getTrustStoreLocation(), this.getClass(), true, true );
+            }
+            catch ( IOException e1 )
+            {
+                throw new EndpointConstructionException( "cannot load truststore from { " + config.getTrustStoreLocation() + " }", e1 );
+            }
+            try
+            {
+                trustStore.load( inTrust, config.getTrustStorePassword().toCharArray() );
+            }
+            catch ( NoSuchAlgorithmException | CertificateException | IOException e1 )
+            {
+                throw new EndpointConstructionException( "cannot load truststore from { " + config.getTrustStoreLocation() + " } using passwd ***", e1 );
+            }
 
             // You can load multiple certificates if needed
             DtlsConnectorConfig.Builder configBuider= new DtlsConnectorConfig.Builder( config.getLocalAddress() );
@@ -220,7 +278,7 @@ public class CoapClientConnector
             }
             catch ( Exception e )
             {
-                throw new Exception( "coap: certificate chain with alias not found in truststore" );
+                throw new EndpointConstructionException( "certificate chain with alias { " + config.getTrustedRootCertificateAlias()  + " } not found in truststore", e );
             }
             try
             {
@@ -232,7 +290,7 @@ public class CoapClientConnector
             }
             catch ( Exception e )
             {
-                throw new Exception( "coap: private key with alias not found in keystore" );
+                throw new EndpointConstructionException( "identity with private key alias { " + config.getPrivateKeyAlias() + " } could not be set" );
             }
             DTLSConnector connector= new DTLSConnector( configBuider.build() );
             // DTLSConnector connector = new DTLSConnector(new
@@ -250,12 +308,12 @@ public class CoapClientConnector
      * The Ping messageprocessor checks whether a CoAP resource is reachable.
      * @param path The resource that is pinged.
      * @return true if ping was successful, otherwise false
-     * @throws Exception Is thrown when an unexpected error occurs
+     * @throws MalformedUriException cannot form valid uri with given parameters
      */
     //TODO add optional host port, 
     //TODO path is useful here?
     @Processor
-    public Boolean ping( String path ) throws Exception
+    public Boolean ping( String path ) throws MalformedUriException
     {
         CoapClient client= createClient( null, null, path, null );
 
@@ -270,7 +328,7 @@ public class CoapClientConnector
      * @param port The port the server is listening on,.
      * @param  queryParameters The optional query-parameters for discovery.
      * @return A Set of Weblinks describing the resources on the server. When the retrieval of the set of Weblinks failed, null is returned.
-     * @throws Exception Is thrown when an unexpected error occurs
+     * @throws MalformedUriException cannot form valid uri with given parameters
      */
     //TODO: Hide Californium API from Mule application
 
@@ -278,7 +336,7 @@ public class CoapClientConnector
     public Set< WebLink > discover( 
             @Optional String host,
             @Optional Integer port,
-        	@Optional List< String > queryParameters ) throws Exception
+        	@Optional List< String > queryParameters ) throws MalformedUriException
     {
         CoapClient client= createClient( host, port, "/", null );
         return client.discover( toQueryString( queryParameters ) );
@@ -294,7 +352,8 @@ public class CoapClientConnector
      * @param queryParameters List of query parameters.
      * @return On success the contents of the CoAP resource is returned in a byte array( byte[] ) as message payload. 
      * Otherwise the payload will be empty.
-     * @throws Exception Is thrown when an unexpected error occurs
+     * @throws MalformedUriException cannot form valid uri with given parameters
+     * @throws HandlerException response handler with given name not found
      */
     @Processor
     public MuleEvent get(
@@ -303,7 +362,7 @@ public class CoapClientConnector
         @Optional String host,
         @Optional Integer port,
         String path,
-        @Optional List< String > queryParameters ) throws Exception
+        @Optional List< String > queryParameters ) throws MalformedUriException, HandlerException 
     {
         return doRequest( event, CoAP.Code.GET, confirmable, host, port, path, queryParameters, null );
     }
@@ -318,7 +377,8 @@ public class CoapClientConnector
      * @param queryParameters List of query parameters.
      * @param responseHandler Name of the handler that will process the returned response.
      * @return The MuleMessage is returned unchanged.
-     * @throws Exception Is thrown when an unexpected error occurs
+     * @throws MalformedUriException cannot form valid uri with given parameters
+     * @throws HandlerException response handler with given name not found
      */
     @Processor
     public MuleEvent asyncGet(
@@ -328,7 +388,7 @@ public class CoapClientConnector
         @Optional Integer port,
         String path,
         @Optional List< String > queryParameters,
-        String responseHandler ) throws Exception
+        String responseHandler ) throws MalformedUriException, HandlerException 
     {
         return doRequest( event, CoAP.Code.GET, confirmable, host, port, path, queryParameters, responseHandler );
     }
@@ -343,7 +403,8 @@ public class CoapClientConnector
      * @param queryParameters List of query parameters.
      * @return On success the response payload - if any - is returned in a byte array( byte[] ) as message payload. 
      * Otherwise the payload will be empty.
-     * @throws Exception Is thrown when an unexpected error occurs
+     * @throws MalformedUriException cannot form valid uri with given parameters
+     * @throws HandlerException response handler with given name not found
      */
     @Processor
     public MuleEvent put(
@@ -352,7 +413,7 @@ public class CoapClientConnector
         @Optional String host,
         @Optional Integer port,
         String path,
-        @Optional List< String > queryParameters ) throws Exception
+        @Optional List< String > queryParameters ) throws MalformedUriException, HandlerException 
     {
         return doRequest( event, CoAP.Code.PUT, confirmable, host, port, path, queryParameters, null );
     }
@@ -367,7 +428,8 @@ public class CoapClientConnector
      * @param queryParameters List of query parameters.
      * @param responseHandler Name of the handler that will process the returned response.
      * @return The MuleMessage is returned unchanged.
-     * @throws Exception Is thrown when an unexpected error occurs
+     * @throws MalformedUriException cannot form valid uri with given parameters
+     * @throws HandlerException response handler with given name not found
      */
     @Processor
     public MuleEvent asyncPut(
@@ -377,7 +439,7 @@ public class CoapClientConnector
         @Optional Integer port,
         String path,
         @Optional List< String > queryParameters,
-        String responseHandler ) throws Exception
+        String responseHandler ) throws MalformedUriException, HandlerException 
     {
         return doRequest( event, CoAP.Code.PUT, confirmable, host, port, path, queryParameters, responseHandler );
     }
@@ -392,7 +454,8 @@ public class CoapClientConnector
      * @param queryParameters List of query parameters.
      * @return On success the response payload - if any - is returned in a byte array( byte[] ) as message payload. 
      * Otherwise the payload will be empty.
-     * @throws Exception Is thrown when an unexpected error occurs
+     * @throws MalformedUriException cannot form valid uri with given parameters
+     * @throws HandlerException response handler with given name not found
      */
     @Processor
     public MuleEvent post(
@@ -401,7 +464,7 @@ public class CoapClientConnector
         @Optional String host,
         @Optional Integer port,
         String path,
-        @Optional List< String > queryParameters ) throws Exception
+        @Optional List< String > queryParameters ) throws MalformedUriException, HandlerException 
     {
         return doRequest( event, CoAP.Code.POST, confirmable, host, port, path, queryParameters, null );
     }
@@ -416,7 +479,8 @@ public class CoapClientConnector
      * @param queryParameters List of query parameters.
      * @param responseHandler Name of the handler that will process the returned response.
      * @return The MuleMessage is returned unchanged.
-     * @throws Exception Is thrown when an unexpected error occurs
+     * @throws MalformedUriException cannot form valid uri with given parameters
+     * @throws HandlerException response handler with given name not found
      */
     @Processor
     public MuleEvent asyncPost(
@@ -426,12 +490,8 @@ public class CoapClientConnector
         @Optional Integer port,
         String path,
         @Optional List< String > queryParameters,
-        String responseHandler ) throws Exception
+        String responseHandler ) throws MalformedUriException, HandlerException 
     {
-        // int type= MediaTypeRegistry.parse( mediatype );
-        // if ( type == MediaTypeRegistry.UNDEFINED ) throw new Exception(
-        // "coap: unsupported mediatype" );
-
         return doRequest( event, CoAP.Code.POST, confirmable, host, port, path, queryParameters, responseHandler );
     }
 
@@ -445,7 +505,8 @@ public class CoapClientConnector
      * @param queryParameters List of query parameters.
      * @return On success the response payload - if any - is returned in a byte array( byte[] ) as message payload. 
      * Otherwise the payload will be empty.
-     * @throws Exception Is thrown when an unexpected error occurs
+     * @throws MalformedUriException cannot form valid uri with given parameters
+     * @throws HandlerException response handler with given name not found
      */
     @Processor
     public MuleEvent delete(
@@ -454,7 +515,7 @@ public class CoapClientConnector
         @Optional String host,
         @Optional Integer port,
         String path,
-        @Optional List< String > queryParameters ) throws Exception
+        @Optional List< String > queryParameters ) throws MalformedUriException, HandlerException 
     {
 
         return doRequest( event, CoAP.Code.DELETE, confirmable, host, port, path, queryParameters, null );
@@ -470,7 +531,8 @@ public class CoapClientConnector
      * @param queryParameters List of query parameters.
      * @param responseHandler Name of the handler that will process the returned response.
      * @return The MuleMessage is returned unchanged.
-     * @throws Exception Is thrown when an unexpected error occurs
+     * @throws MalformedUriException cannot form valid uri with given parameters
+     * @throws HandlerException response handler with given name not found
      */
     @Processor
     public MuleEvent asyncDelete(
@@ -480,7 +542,7 @@ public class CoapClientConnector
         @Optional Integer port,
         String path,
         @Optional List< String > queryParameters,
-        String responseHandler ) throws Exception
+        String responseHandler ) throws MalformedUriException, HandlerException 
     {
 
         return doRequest( event, CoAP.Code.DELETE, confirmable, host, port, path, queryParameters, responseHandler );
@@ -494,16 +556,17 @@ public class CoapClientConnector
      * @param path The path of the resource.
      * @param queryParameters List of query parameters.
      * @param responseHandler Name of the handler that will process the resource updates received from server.
-     * @throws Exception Is thrown when an unexpected error occurs
+     * @throws MalformedUriException cannot form valid uri with given parameters
+     * @throws HandlerException response handler with given name not found
      */
     //TODO: return mule event?
     @Processor
-    public void startObserve( @Optional String host, @Optional Integer port, String path, @Optional List< String > queryParameters, String responseHandler ) throws Exception
+    public void startObserve( @Optional String host, @Optional Integer port, String path, @Optional List< String > queryParameters, String responseHandler ) throws MalformedUriException, HandlerException 
     {
         final CoapClient client= createClient( host, port, path, toQueryString( queryParameters ) );
 
         final SourceCallback callback= handlers.get( responseHandler );
-        if ( callback == null ) throw new Exception( "coap unknown handler: " + responseHandler );
+        if ( callback == null ) throw new HandlerException( "response handler { " + responseHandler + " }");
 
         CoapHandler handler= new CoapHandler()
             {
@@ -574,11 +637,11 @@ public class CoapClientConnector
      * @param port The port the server is listening on.
      * @param path The path of the resource.
      * @param queryParameters List of query parameters.
-     * @throws Exception Is thrown when an unexpected error occurs
+     * @throws MalformedUriException cannot form valid uri with given parameters
      */
     //TODO: return mule event?
     @Processor
-    public void stopObserve( @Optional String host, @Optional Integer port, String path, @Optional List< String > queryParameters ) throws Exception
+    public void stopObserve( @Optional String host, @Optional Integer port, String path, @Optional List< String > queryParameters ) throws MalformedUriException 
     {
         String uri= getUri( host, port, path, toQueryString( queryParameters ) );
         CoapObserveRelation relation= dynamicRelations.get( uri );
@@ -619,10 +682,11 @@ public class CoapClientConnector
      * @return Updates on the resource the server sends are returned as a MuleMessage. 
      * CoAP message contents - if any - are delivered as a byte array ( byte[] ) message payload. 
      * When there are no CoAP contents the payload will be empty.
+     * @throws MalformedUriException no valid uri could be formed with given parameters
      * @throws Exception Is thrown when an unexpected error occurs
      */
     @Source
-    public void observe( final SourceCallback callback, @Optional String host, @Optional Integer port, String path, @Optional List< String > queryParameters ) throws Exception
+    public void observe( final SourceCallback callback, @Optional String host, @Optional Integer port, String path, @Optional List< String > queryParameters ) throws MalformedUriException 
     {
         final CoapClient client= createClient( host, port, path, toQueryString( queryParameters ) );
 
@@ -685,13 +749,14 @@ public class CoapClientConnector
      * @return Responses on asynchronous requests are returned as a MuleMessage. 
      * CoAP response contents - if any - are delivered as a byte array ( byte[] ) message payload. 
      * When there are no CoAP contents the payload will be empty.
+     * @throws HandlerException 
      * @throws Exception Is thrown when an unexpected 
      */
     @Source
-    public void handleResponse( final SourceCallback callback, String handlerName ) throws Exception
+    public void handleResponse( final SourceCallback callback, String handlerName ) throws HandlerException
     {
-        if ( handlerName == null || handlerName.isEmpty() ) throw new Exception( "coap Invalid ResponseHandler name" );
-        if ( handlers.get( handlerName ) != null ) throw new Exception( "coap ResponseHandler name not unique" );
+        if ( handlerName == null || handlerName.isEmpty() ) throw new HandlerException( "empty responsehandler name not allowed" );
+        if ( handlers.get( handlerName ) != null ) throw new HandlerException( "responsehandler name { " + handlerName + " } not unique" );
         handlers.put( handlerName, callback );
     }
 
@@ -704,8 +769,9 @@ public class CoapClientConnector
      * @param path The path of the resource.
      * @param query String containing query parameters.
      * @return The URI object. 
+     * @throws MalformedUriException cannot form valid uri with given parameters
      */ 
-    public URI getURI( String host, Integer port, String path, String query ) throws URISyntaxException
+    public URI getURI( String host, Integer port, String path, String query ) throws MalformedUriException 
     {
         String scheme= ( config.isSecure() ? CoAP.COAP_SECURE_URI_SCHEME : CoAP.COAP_URI_SCHEME );
         String uriHost= ( host == null ? config.getHost() : host );
@@ -725,7 +791,14 @@ public class CoapClientConnector
         {
             uriPort= port;
         }
-        return new URI( scheme, null, uriHost, uriPort, path, query, null );
+        try
+        {
+            return new URI( scheme, null, uriHost, uriPort, path, query, null );
+        }
+        catch ( URISyntaxException e )
+        {
+            throw new MalformedUriException( "cannot form valid uri using: { " + host + ", " +  port + ", " + path + ", " + query + " }");
+        }
     }
 
     /**
@@ -735,8 +808,9 @@ public class CoapClientConnector
      * @param path The path of the resource.
      * @param query String containing query parameters.
      * @return The String containing the uri. 
+     * @throws MalformedUriException cannot form valid uri with given parameters
      */     
-    public String getUri( String host, Integer port, String path, String query ) throws URISyntaxException
+    public String getUri( String host, Integer port, String path, String query ) throws MalformedUriException 
     {
         return getURI( host, port, path, query ).toString();
     }
@@ -769,18 +843,11 @@ public class CoapClientConnector
      * @param query String containing query parameters.
      * @return The client object.
      * @exception MalformedEndpointException The client uri is invalid.
+     * @throws MalformedUriException 
      */     
-    private CoapClient createClient( String host, Integer port, String path, String query ) throws MalformedEndpointException
+    private CoapClient createClient( String host, Integer port, String path, String query ) throws MalformedUriException
     {
-        CoapClient client;
-        try
-        {
-            client= new CoapClient( getUri( host, port, path, query ) );
-        }
-        catch ( URISyntaxException e )
-        {
-            throw new MalformedEndpointException( e );
-        }
+        CoapClient client= new CoapClient( getUri( host, port, path, query ) );
         client.setEndpoint( endpoint );
 
         return client;
@@ -797,7 +864,8 @@ public class CoapClientConnector
      * @param queryParameters List of query parameters.
      * @param handlerName Optional name of the handler. Use when the response should be handled asynchronously 
      * @return The response Mule event containing the response message.
-     * @exception Exception An unexpected error occurred.
+     * @throws MalformedUriException no valid coap uri could be built with given parameters
+     * @throws HandlerException handler not found
      */    
     // TODO add custom timeout, endpoint, networkconfig?
     private MuleEvent doRequest(
@@ -808,7 +876,7 @@ public class CoapClientConnector
         Integer port,
         String path,
         List< String > queryParameters,
-        String handlerName ) throws Exception
+        String handlerName ) throws MalformedUriException, HandlerException
     {
         CoapHandler handler= null;
 
@@ -855,7 +923,7 @@ public class CoapClientConnector
         {
             final SourceCallback callback= handlers.get( handlerName );
             // verify handler existence
-            if ( callback == null ) throw new Exception( "coap unknown handler: " + handlerName );
+            if ( callback == null ) throw new HandlerException( "referenced handler { " + handlerName + " } not found");
             handler= new CoapHandler()
                 {
                     @Override
