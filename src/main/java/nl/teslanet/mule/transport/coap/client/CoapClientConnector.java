@@ -128,7 +128,7 @@ public class CoapClientConnector
     @TestConnectivity
     public void test() throws MalformedUriException, ConnectionException 
     {
-        CoapClient client= createClient( null, null, "/", null );
+        CoapClient client= createClient( true,  null, null, "/", null );
 
         if ( client == null || !client.ping() )
         {
@@ -315,7 +315,7 @@ public class CoapClientConnector
     @Processor
     public Boolean ping( String path ) throws MalformedUriException
     {
-        CoapClient client= createClient( null, null, path, null );
+        CoapClient client= createClient( true, null, null, path, null );
 
         boolean response= client.ping();
         return new Boolean( response );
@@ -324,6 +324,7 @@ public class CoapClientConnector
     /**
      * Discover message-processor retrieves information about CoAP resources from a server.
      * The host and port are optional parameters that override Connector configuration
+     * @param confirmable When true (default), requests are sent confirmable.
      * @param host The host address of the server.
      * @param port The port the server is listening on,.
      * @param  queryParameters The optional query-parameters for discovery.
@@ -333,12 +334,15 @@ public class CoapClientConnector
     //TODO: Hide Californium API from Mule application
 
     @Processor
-    public Set< WebLink > discover( 
-            @Optional String host,
-            @Optional Integer port,
-        	@Optional List< String > queryParameters ) throws MalformedUriException
+    public Set< WebLink > discover
+    ( 
+        @Default( value= "true" ) Boolean confirmable,
+        @Optional String host,
+        @Optional Integer port,
+    	@Optional List< String > queryParameters 
+	) throws MalformedUriException
     {
-        CoapClient client= createClient( host, port, "/", null );
+        CoapClient client= createClient( confirmable, host, port, "/", null );
         return client.discover( toQueryString( queryParameters ) );
     }
 
@@ -551,6 +555,7 @@ public class CoapClientConnector
     /**
      * Start-observe messageprocessor dynamically initiates observation of a CoAP resource on a Server.
      * The resource url can be set, overriding connector configuration.
+     * @param confirmable When true (default), requests are sent confirmable.
      * @param host The host address of the server.
      * @param port The port the server is listening on.
      * @param path The path of the resource.
@@ -561,9 +566,17 @@ public class CoapClientConnector
      */
     //TODO: return mule event?
     @Processor
-    public void startObserve( @Optional String host, @Optional Integer port, String path, @Optional List< String > queryParameters, String responseHandler ) throws MalformedUriException, HandlerException 
+    public void startObserve
+    ( 
+        @Default( value= "true" ) Boolean confirmable,
+        @Optional String host, 
+        @Optional Integer port, 
+        String path, 
+        @Optional List< String > queryParameters, 
+        String responseHandler
+    ) throws MalformedUriException, HandlerException 
     {
-        final CoapClient client= createClient( host, port, path, toQueryString( queryParameters ) );
+        final CoapClient client= createClient( confirmable, host, port, path, toQueryString( queryParameters ) );
 
         final SourceCallback callback= handlers.get( responseHandler );
         if ( callback == null ) throw new HandlerException( "response handler { " + responseHandler + " }");
@@ -675,6 +688,7 @@ public class CoapClientConnector
      * Observe messagesource observes a CoAP resource on a Server.
      * The observation is static - meaning the observation will be active as long as the Mule-flow is running.
      * The resource url can be set, overriding connector configuration.
+     * @param confirmable When true (default), requests are sent confirmable.
      * @param host The host address of the server.
      * @param port The port the server is listening on.
      * @param path The path of the resource.
@@ -686,9 +700,17 @@ public class CoapClientConnector
      * @throws Exception Is thrown when an unexpected error occurs
      */
     @Source
-    public void observe( final SourceCallback callback, @Optional String host, @Optional Integer port, String path, @Optional List< String > queryParameters ) throws MalformedUriException 
+    public void observe
+    ( 
+        final SourceCallback callback,
+        @Default( value= "true" ) Boolean confirmable,
+        @Optional String host, 
+        @Optional Integer port, 
+        String path, 
+        @Optional List< String > queryParameters
+    ) throws MalformedUriException 
     {
-        final CoapClient client= createClient( host, port, path, toQueryString( queryParameters ) );
+        final CoapClient client= createClient( confirmable, host, port, path, toQueryString( queryParameters ) );
 
         CoapObserveRelation relation= client.observe( new CoapHandler()
             {
@@ -837,6 +859,7 @@ public class CoapClientConnector
 
     /**
      * Create a client object that can be used to issue requests.
+     * @param confirmable 
      * @param host The host address of the server.
      * @param port The port the server is listening on.
      * @param path The path of the resource.
@@ -845,11 +868,18 @@ public class CoapClientConnector
      * @exception MalformedEndpointException The client uri is invalid.
      * @throws MalformedUriException 
      */     
-    private CoapClient createClient( String host, Integer port, String path, String query ) throws MalformedUriException
+    private CoapClient createClient( Boolean confirmable, String host, Integer port, String path, String query ) throws MalformedUriException
     {
         CoapClient client= new CoapClient( getUri( host, port, path, query ) );
         client.setEndpoint( endpoint );
-
+        if ( confirmable)
+        {
+            client.useCONs();
+        }
+        else
+        {
+            client.useNONs();
+        }
         return client;
     }
 
@@ -880,12 +910,12 @@ public class CoapClientConnector
     {
         CoapHandler handler= null;
 
-        final CoapClient client= createClient( host, port, path, toQueryString( queryParameters ) );
-
+        final CoapClient client= createClient( confirmable, host, port, path, toQueryString( queryParameters ) );
+ 
         // build request
         MuleMessage muleMessage= event.getMessage();
-        //TODO: tests show NON isn't working
-        Request request= new Request( requestCode, ( confirmable ? Type.CON : Type.NON ) );
+        
+        Request request= new Request( requestCode );
 
         Object requestPayload= muleMessage.getPayload();
 
