@@ -27,6 +27,7 @@ import java.security.cert.CertificateException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -40,7 +41,6 @@ import org.eclipse.californium.core.CoapResponse;
 import org.eclipse.californium.core.WebLink;
 import org.eclipse.californium.core.coap.CoAP;
 import org.eclipse.californium.core.coap.CoAP.Code;
-import org.eclipse.californium.core.coap.CoAP.Type;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.eclipse.californium.core.coap.Request;
 import org.eclipse.californium.core.network.CoapEndpoint;
@@ -49,10 +49,12 @@ import org.eclipse.californium.scandium.config.DtlsConnectorConfig;
 import org.eclipse.californium.scandium.dtls.pskstore.InMemoryPskStore;
 import org.mule.DefaultMuleEvent;
 import org.mule.DefaultMuleMessage;
+import org.mule.MessageExchangePattern;
 import org.mule.api.ConnectionException;
 import org.mule.api.ConnectionExceptionCode;
 import org.mule.api.MuleContext;
 import org.mule.api.MuleEvent;
+import org.mule.api.MuleException;
 import org.mule.api.MuleMessage;
 import org.mule.api.annotations.Config;
 import org.mule.api.annotations.Connector;
@@ -66,17 +68,18 @@ import org.mule.api.annotations.param.Default;
 import org.mule.api.annotations.param.Optional;
 import org.mule.api.callback.SourceCallback;
 import org.mule.api.endpoint.MalformedEndpointException;
+import org.mule.security.oauth.processor.AbstractListeningMessageProcessor;
 import org.mule.transformer.types.DataTypeFactory;
 import org.mule.transport.NullPayload;
 import org.mule.util.IOUtils;
 
 import nl.teslanet.mule.transport.coap.client.config.CoAPClientConfig;
+import nl.teslanet.mule.transport.coap.client.error.EndpointConstructionException;
 import nl.teslanet.mule.transport.coap.client.error.ErrorHandler;
-import nl.teslanet.mule.transport.coap.client.error.MalformedUriException;
 import nl.teslanet.mule.transport.coap.client.error.HandlerException;
+import nl.teslanet.mule.transport.coap.client.error.MalformedUriException;
 import nl.teslanet.mule.transport.coap.commons.options.Options;
 import nl.teslanet.mule.transport.coap.commons.options.PropertyNames;
-import nl.teslanet.mule.transport.coap.client.error.EndpointConstructionException;
 /**
  * Mule CoAP connector - CoapClient. 
  * The CoapClient Connector can be used in Mule applications to implement CoAP clients as defined in {@see http://tools.ietf.org/html/rfc7252}.
@@ -601,31 +604,13 @@ public class CoapClientConnector
                             relation.reregister();
                         } ;
                     }
-                    try
-                    {
-                        callback.process( createMuleMessage( null, client, Code.GET ) );
-                    }
-                    catch ( Exception e )
-                    {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-
+                    processMuleFlow( null, client, callback, Code.GET );
                 }
 
                 @Override
                 public void onLoad( CoapResponse response )
                 {
-                    try
-                    {
-                        callback.process( createMuleMessage( response, client, Code.GET ) );
-                    }
-                    catch ( Exception e )
-                    {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-
+                    processMuleFlow( response, client, callback, Code.GET );
                 }
 
             };
@@ -634,7 +619,7 @@ public class CoapClientConnector
         if ( relation != null )
         {
             // only one observe relation allowed per connector & path
-            // TODO maybe configurable whether proactive ot not
+            // TODO maybe configurable whether proactive or not
             relation.proactiveCancel();
             dynamicRelations.remove( client.getURI() );
         }
@@ -732,31 +717,13 @@ public class CoapClientConnector
                             relation.reregister();
                         } ;
                     }
-                    try
-                    {
-                        callback.process( createMuleMessage( null, client, Code.GET ) );
-                    }
-                    catch ( Exception e )
-                    {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-
+                    processMuleFlow( null, client, callback, Code.GET );
                 }
 
                 @Override
                 public void onLoad( CoapResponse response )
                 {
-                    try
-                    {
-                        callback.process( createMuleMessage( response, client, Code.GET ) );
-                    }
-                    catch ( Exception e )
-                    {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-
+                    processMuleFlow( response, client, callback, Code.GET );
                 }
 
             } );
@@ -954,51 +921,19 @@ public class CoapClientConnector
             final SourceCallback callback= handlers.get( handlerName );
             // verify handler existence
             if ( callback == null ) throw new HandlerException( "referenced handler { " + handlerName + " } not found");
-            handler= new CoapHandler()
-                {
-                    @Override
-                    public void onError()
-                    {
-                        try
-                        {
-                            callback.process( createMuleMessage( null, client, requestCode ) );
-                        }
-                        catch ( Exception e )
-                        {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
-                        }
-
-                    }
-
-                    @Override
-                    public void onLoad( CoapResponse response )
-                    {
-                        try
-                        {
-                            callback.process( createMuleMessage( response, client, requestCode ) );
-                        }
-                        catch ( Exception e )
-                        {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
-                        }
-
-                    }
-
-                };
+            handler= createHandler( client, callback, requestCode );
         }
         if ( handler == null )
         {
-            // send out request
+            // send out synchronous request
             CoapResponse response= client.advanced( request );
 
             // return response to Mule flow
-            return createMuleEvent( response, client, requestCode, event );
+            return createProcessorMuleEvent( response, client, requestCode, event );
         }
         else
         {
-            // async response
+            // asynchronous request
             client.advanced( handler, request );
             // return unchanged event to Mule flow
             // TODO maybe VoidMuleEvent
@@ -1007,7 +942,34 @@ public class CoapClientConnector
 
     }
 
+    /**
+     * Create a Handler of CoAP responses.
+     * @param client  The Coap client that produced the response
+     * @param callback The Listening Messageprocessor that nedds to be called
+     * @param requestCode The coap request code from the request context
+     * @return
+     */
+    private CoapHandler createHandler( final CoapClient client, final SourceCallback callback, final Code requestCode )
+    {
+        return new CoapHandler(  )
+        {
+            @Override
+            public void onError()
+            {
+                processMuleFlow( null, client, callback, requestCode );   
+            }
+    
+            @Override
+            public void onLoad( CoapResponse response )
+            {
+                processMuleFlow( response, client, callback, requestCode );
+           }
+    
+        };
+    }
+    
 
+    
     /**
      * Create response MuleMessage. The payload will be set to the CoAP payload. 
      * CoAP metadata including CoAP options will be added as inbound properties.  
@@ -1061,7 +1023,7 @@ public class CoapClientConnector
     }
 
     /**
-     * Create response MuleEvent. The payload will be set to the CoAP payload. 
+     * Create response MuleEvent in the context of a Message processor. The payload will be set to the CoAP payload. 
      * CoAP metadata including CoAP options will be added as inbound properties.  
      * @param response the CoAP response that needs to be delivered into the Mule flow
      * @param client The client object tht issued the request.
@@ -1069,14 +1031,42 @@ public class CoapClientConnector
      * @param rewriteEvent The input event.
      * @return MuleMessage created.
      */
-    private MuleEvent createMuleEvent( CoapResponse response, CoapClient client, Code requestCode, MuleEvent rewriteEvent )
+    private MuleEvent createProcessorMuleEvent( CoapResponse response, CoapClient client, Code requestCode, MuleEvent rewriteEvent )
     {
         MuleMessage responseMuleMessage= createMuleMessage( response, client, requestCode );
         DefaultMuleEvent result= new DefaultMuleEvent( responseMuleMessage, rewriteEvent );
 
         return result;
     }
+    
+    /**
+     * Gets the message processed through the Mule flow 
+     * @param response The Coap response to handled by the mule flow
+     * @param client  The Coap client that produced the response
+     * @param callback The Listening Messageprocessor that nedds to be called
+     * @param requestCode The coap request code from the request context
+     */
+    private void processMuleFlow( CoapResponse response, final CoapClient client, final SourceCallback callback, final Code requestCode )   
+    {
+        @SuppressWarnings("unused")
+        MuleEvent responseEvent= null;
+        
+        AbstractListeningMessageProcessor processor= (AbstractListeningMessageProcessor) callback;
 
+        //TODO make safe:
+        MuleMessage muleMessage = createMuleMessage( response, client, requestCode );
+        MuleEvent muleEvent= new DefaultMuleEvent( muleMessage, MessageExchangePattern.ONE_WAY, processor.getFlowConstruct() );
+        try
+        {
+            responseEvent= processor.processEvent( muleEvent );
+        }
+        catch ( MuleException ex )
+        {
+            //handle over to Flow's exception handling
+            responseEvent= processor.getFlowConstruct().getExceptionListener().handleException( ex, muleEvent );
+        }
+    };
+    
     /**
      * Gets the Mule context.
      * @return The Mule context.
