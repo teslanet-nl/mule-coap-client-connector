@@ -39,8 +39,6 @@ public class CoAPClientConfig extends EndpointConfig
     @Optional
     @Placement(tab= "General", group="Connect to")
     private Integer port= null;
-
-    //TODO add base path 
     
     /**
      * Flag indicating DTLS will be used to connect to the CoAP server.

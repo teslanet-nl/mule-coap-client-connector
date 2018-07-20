@@ -27,7 +27,6 @@ import java.security.cert.CertificateException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -122,7 +121,6 @@ public class CoapClientConnector
     private ConcurrentSkipListMap< String, SourceCallback > handlers= new ConcurrentSkipListMap< String, SourceCallback >();
 
     // A class with @Connector must contain exactly one method annotated with
-    //TODO: remove when not needed
     /**
      * Test connectivity
      * @throws MalformedUriException cannot form valid uri with given parameters
@@ -135,7 +133,7 @@ public class CoapClientConnector
 
         if ( client == null || !client.ping() )
         {
-            throw new ConnectionException( ConnectionExceptionCode.CANNOT_REACH, "coap  ping failure", null );
+            throw new ConnectionException( ConnectionExceptionCode.CANNOT_REACH, "coap ping failure on uri { " + ( client == null ? "null" : client.getURI()) + " }", null );
         }
         if ( client != null )
         {
@@ -253,7 +251,6 @@ public class CoapClientConnector
             {
                 throw new EndpointConstructionException( "cannot create JKS truststore instance", e1 );
             }
-            //TODO load from from Mule util
             InputStream inTrust;
             try
             {
@@ -309,16 +306,20 @@ public class CoapClientConnector
 
     /**
      * The Ping messageprocessor checks whether a CoAP resource is reachable.
-     * @param path The resource that is pinged.
-     * @return true if ping was successful, otherwise false
+     * @param host The host to ping. Overrides the connector setting.
+     * @param port The port the host listens on. Overrides the connector setting.
+     * @return true when ping was successful, otherwise false.
      * @throws MalformedUriException cannot form valid uri with given parameters
      */
-    //TODO add optional host port, 
-    //TODO path is useful here?
     @Processor
-    public Boolean ping( String path ) throws MalformedUriException
+    public Boolean ping
+    (
+        @Optional String host,
+        @Optional Integer port
+    ) 
+        throws MalformedUriException
     {
-        CoapClient client= createClient( true, null, null, path, null );
+        CoapClient client= createClient( true, host, port, "/", null );
 
         boolean response= client.ping();
         return new Boolean( response );
@@ -329,7 +330,7 @@ public class CoapClientConnector
      * The host and port are optional parameters that override Connector configuration
      * @param confirmable When true (default), requests are sent confirmable.
      * @param host The host address of the server.
-     * @param port The port the server is listening on,.
+     * @param port The port the server is listening on.
      * @param  queryParameters The optional query-parameters for discovery.
      * @return A Set of Weblinks describing the resources on the server. When the retrieval of the set of Weblinks failed, null is returned.
      * @throws MalformedUriException cannot form valid uri with given parameters
