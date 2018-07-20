@@ -33,7 +33,7 @@ public class EndpointConfig
     private String bindToHost= null;
 
     /**
-     * The port the CoAP client will listen on when secure == false.
+     * The port the CoAP client will bind to when secure == false.
      */
     @Configurable
     @Optional
@@ -41,7 +41,7 @@ public class EndpointConfig
     private String bindToPort= null;
 
     /**
-     * The port the CoAP client will listen on when secure == true.
+     * The port the CoAP client will bind to when secure == true.
      */
     @Configurable
     @Optional
@@ -257,7 +257,7 @@ public class EndpointConfig
     @Optional
     @Placement(tab= "Deduplicator", group= "Deduplicator")
     private String noDeduplicator= null;
-
+/*
     //---------------
     @Configurable
     @Optional
@@ -283,7 +283,7 @@ public class EndpointConfig
     @Optional
     @Placement(tab= "HTTP", group= "HTTP")
     private String httpCacheSize= null;
-
+*/
     //---------------
     @Configurable
     @Optional
@@ -967,10 +967,10 @@ public class EndpointConfig
     {
         this.noDeduplicator= noDeduplicator;
     }
-
+/*
     /**
      * @return the httpPort
-     */
+     * /
     public String getHttpPort()
     {
         return httpPort;
@@ -978,7 +978,7 @@ public class EndpointConfig
 
     /**
      * @param httpPort the httpPort to set
-     */
+     * /
     public void setHttpPort( String httpPort )
     {
         this.httpPort= httpPort;
@@ -986,7 +986,7 @@ public class EndpointConfig
 
     /**
      * @return the httpServerSocketTimeout
-     */
+     * /
     public String getHttpServerSocketTimeout()
     {
         return httpServerSocketTimeout;
@@ -994,7 +994,7 @@ public class EndpointConfig
 
     /**
      * @param httpServerSocketTimeout the httpServerSocketTimeout to set
-     */
+     * /
     public void setHttpServerSocketTimeout( String httpServerSocketTimeout )
     {
         this.httpServerSocketTimeout= httpServerSocketTimeout;
@@ -1002,7 +1002,7 @@ public class EndpointConfig
 
     /**
      * @return the httpServerSocketBufferSize
-     */
+     * /
     public String getHttpServerSocketBufferSize()
     {
         return httpServerSocketBufferSize;
@@ -1010,7 +1010,7 @@ public class EndpointConfig
 
     /**
      * @param httpServerSocketBufferSize the httpServerSocketBufferSize to set
-     */
+     * /
     public void setHttpServerSocketBufferSize( String httpServerSocketBufferSize )
     {
         this.httpServerSocketBufferSize= httpServerSocketBufferSize;
@@ -1018,7 +1018,7 @@ public class EndpointConfig
 
     /**
      * @return the httpCacheResponseMaxAge
-     */
+     * /
     public String getHttpCacheResponseMaxAge()
     {
         return httpCacheResponseMaxAge;
@@ -1026,7 +1026,7 @@ public class EndpointConfig
 
     /**
      * @param httpCacheResponseMaxAge the httpCacheResponseMaxAge to set
-     */
+     * /
     public void setHttpCacheResponseMaxAge( String httpCacheResponseMaxAge )
     {
         this.httpCacheResponseMaxAge= httpCacheResponseMaxAge;
@@ -1034,7 +1034,7 @@ public class EndpointConfig
 
     /**
      * @return the httpCacheSize
-     */
+     * /
     public String getHttpCacheSize()
     {
         return httpCacheSize;
@@ -1042,12 +1042,12 @@ public class EndpointConfig
 
     /**
      * @param httpCacheSize the httpCacheSize to set
-     */
+     * /
     public void setHttpCacheSize( String httpCacheSize )
     {
         this.httpCacheSize= httpCacheSize;
     }
-
+*/
     /**
      * @return the healthStatusPrintLevel
      */
@@ -1125,12 +1125,13 @@ public class EndpointConfig
         if ( this.markAndSweepInterval != null ) config.setLong(NetworkConfig.Keys.MARK_AND_SWEEP_INTERVAL, Long.valueOf( this.markAndSweepInterval )); // 10 * 1000);
         if ( this.cropRotationPeriod != null ) config.setInt(NetworkConfig.Keys.CROP_ROTATION_PERIOD, Integer.valueOf( this.cropRotationPeriod )); // 2000);
 
+        /*
         if ( this.httpPort != null ) config.setInt(NetworkConfig.Keys.HTTP_PORT, Integer.valueOf( this.httpPort )); // 8080);
         if ( this.httpServerSocketTimeout != null ) config.setInt(NetworkConfig.Keys.HTTP_SERVER_SOCKET_TIMEOUT, Integer.valueOf( this.httpServerSocketTimeout )); // 100000);
         if ( this.httpServerSocketBufferSize != null ) config.setInt(NetworkConfig.Keys.HTTP_SERVER_SOCKET_BUFFER_SIZE, Integer.valueOf( this.httpServerSocketBufferSize )); // 8192);
         if ( this.httpCacheResponseMaxAge != null ) config.setInt(NetworkConfig.Keys.HTTP_CACHE_RESPONSE_MAX_AGE, Integer.valueOf( this.httpCacheResponseMaxAge )); // 86400);
         if ( this.httpCacheSize != null ) config.setInt(NetworkConfig.Keys.HTTP_CACHE_SIZE, Integer.valueOf( this.httpCacheSize )); // 32);
-                
+        */
         if ( this.healthStatusPrintLevel != null ) config.setString(NetworkConfig.Keys.HEALTH_STATUS_PRINT_LEVEL, String.valueOf( this.healthStatusPrintLevel )); // "FINEST");
         if ( this.healthStatusInterval != null ) config.setInt(NetworkConfig.Keys.HEALTH_STATUS_INTERVAL, Integer.valueOf( this.healthStatusInterval )); // 60); // s
         return config;

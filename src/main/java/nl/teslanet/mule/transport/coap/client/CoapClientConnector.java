@@ -43,6 +43,8 @@ import org.eclipse.californium.core.coap.CoAP.Code;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.eclipse.californium.core.coap.Request;
 import org.eclipse.californium.core.network.CoapEndpoint;
+import org.eclipse.californium.core.network.Endpoint;
+import org.eclipse.californium.core.network.interceptors.MessageTracer;
 import org.eclipse.californium.scandium.DTLSConnector;
 import org.eclipse.californium.scandium.config.DtlsConnectorConfig;
 import org.eclipse.californium.scandium.dtls.pskstore.InMemoryPskStore;
@@ -156,6 +158,11 @@ public class CoapClientConnector
         try
         {
             endpoint= createEndpoint( this.config );
+            if ( config.isLogMessages() )
+            {
+                // add special interceptor for message traces
+                endpoint.addInterceptor( new MessageTracer() );
+            }
             endpoint.start();
         }
         catch ( Exception e )

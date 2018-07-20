@@ -22,6 +22,9 @@ import org.mule.api.annotations.display.Placement;
 import org.mule.api.annotations.param.Default;
 import org.mule.api.annotations.param.Optional;
 
+/**
+ * The CoAP client configuration contains attributes defining the CoAP endpoint that is used to do CoAP requests.
+ */
 @Configuration(friendlyName = "Configuration")
 public class CoAPClientConfig extends EndpointConfig
 {
@@ -48,6 +51,15 @@ public class CoAPClientConfig extends EndpointConfig
     @Placement(tab= "General", group="Connect to")
     //@FriendlyName(value = false)
     private boolean secure= false;
+
+    /**
+     * When true each CoAP message will be logged.
+     */
+    @Configurable
+    @Default( value= "false")
+    @Placement(tab= "Logging", group= "CoAP")
+    //@FriendlyName(value = false)
+    private boolean logMessages= false;
 
     /**
      * Gets the local address.
@@ -130,4 +142,23 @@ public class CoAPClientConfig extends EndpointConfig
     {
         this.secure= secure;
     }
+
+    /**
+     * Indicates whether CoAP messages should be logged
+     * @return the logMessages
+     */
+    public boolean isLogMessages()
+    {
+        return logMessages;
+    }
+
+    /**
+     * Set flag that indicates whether CoAP messages should be logged
+     * @param logMessages the logMessages to set
+     */
+    public void setLogMessages( boolean logMessages )
+    {
+        this.logMessages= logMessages;
+    }
+
 }
