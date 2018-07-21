@@ -953,7 +953,7 @@ public class CoapClientConnector
     /**
      * Create a Handler of CoAP responses.
      * @param client  The Coap client that produced the response
-     * @param callback The Listening Messageprocessor that nedds to be called
+     * @param callback The Listening Messageprocessor that needs to be called
      * @param requestCode The coap request code from the request context
      * @return
      */
