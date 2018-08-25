@@ -40,7 +40,7 @@
     </scm>
     <profiles>
         <profile>
-            <id>mavencentral_deployment</id>
+            <id>central_deployment</id>
             <activation>
                 <activeByDefault>false</activeByDefault>
             </activation>
