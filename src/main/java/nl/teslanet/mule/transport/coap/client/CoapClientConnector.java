@@ -328,6 +328,7 @@ public class CoapClientConnector
     {
         CoapClient client= createClient( true, host, port, "/", null );
 
+        //TODO catch exception when host not resolvable?
         boolean response= client.ping();
         return new Boolean( response );
     }

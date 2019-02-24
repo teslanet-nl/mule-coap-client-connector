@@ -30,41 +30,28 @@ http://www.mulesoft.org/schema/mule/coap-client http://www.teslanet.nl/schema/mu
       Mule CoAP connector test application
    </description>
   
-   <coap-client:config name="config" host="127.0.0.1" logMessages="true" />
+   <coap-client:config name="config" host="127.0.0.123" logMessages="true" />
       
       
    <sub-flow name="get_me">
-       <coap-client:get config-ref="config" path="/basic/get_me"/>
+      <coap-client:get config-ref="config" host="#[flowVars.host]" port="#[flowVars.port]" path="#[flowVars.path]"/>
    </sub-flow>
    
-   <sub-flow name="do_not_get_me">
-       <coap-client:get config-ref="config" path="/basic/do_not_get_me"/>
+    <sub-flow name="post_me">
+      <coap-client:post config-ref="config" host="#[flowVars.host]" port="#[flowVars.port]" path="#[flowVars.path]"/>
    </sub-flow>
    
-   <sub-flow name="post_me">
-      <coap-client:post config-ref="config" path="/basic/post_me"/>
-   </sub-flow>
-   
-   <sub-flow name="do_not_post_me">
-      <coap-client:post config-ref="config" path="/basic/do_not_post_me"/>
-   </sub-flow>
-
-   
+    
    <sub-flow name="put_me">
-      <coap-client:put config-ref="config" path="/basic/put_me"/>
+      <coap-client:put config-ref="config" host="#[flowVars.host]" port="#[flowVars.port]" path="#[flowVars.path]"/>
    </sub-flow>
    
-   <sub-flow name="do_not_put_me">
-      <coap-client:put config-ref="config" path="/basic/do_not_put_me"/>
+    <sub-flow name="delete_me">
+       <coap-client:delete config-ref="config" host="#[flowVars.host]" port="#[flowVars.port]" path="#[flowVars.path]"/>
    </sub-flow>
-
-   
-   <sub-flow name="delete_me">
-      <coap-client:delete config-ref="config" path="/basic/delete_me"/>
-   </sub-flow>
-   
-   <sub-flow name="do_not_delete_me">
-      <coap-client:delete config-ref="config" path="/basic/do_not_delete_me"/>
-   </sub-flow>
-  
+     
+   <flow name="dummyFlow">
+      <vm:inbound-endpoint name="dummy" path="dummy"/>
+      <echo-component/>
+   </flow>
 </mule>

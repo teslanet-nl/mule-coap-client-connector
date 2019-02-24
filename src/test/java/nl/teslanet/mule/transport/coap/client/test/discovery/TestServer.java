@@ -11,7 +11,7 @@
  * Contributors:
  *    (teslanet.nl) Rogier Cobben - initial creation
  ******************************************************************************/
-package nl.teslanet.mule.transport.coap.client.test.basic;
+package nl.teslanet.mule.transport.coap.client.test.discovery;
 
 
 import java.net.InetSocketAddress;
@@ -57,7 +57,7 @@ public class TestServer extends CoapServer
 
     private void addResources()
     {
-        // provide an instance of a Hello-World resource
+        // provide an instance of a basic resource
         add( new GetResource( "basic" ) );
         getRoot().getChild( "basic" ).add( new GetResource( "get_me" ) );
         getRoot().getChild( "basic" ).add( new NoneResource( "do_not_get_me" ) );
@@ -67,6 +67,14 @@ public class TestServer extends CoapServer
         getRoot().getChild( "basic" ).add( new NoneResource( "do_not_post_me" ) );
         getRoot().getChild( "basic" ).add( new DeleteResource( "delete_me" ) );
         getRoot().getChild( "basic" ).add( new NoneResource( "do_not_delete_me" ) );
+        // provide an instance of a service resource
+        add( new GetResource( "service" ) );
+        getRoot().getChild( "service" ).add( new CtResource( "resource_with_ct" ) );
+        getRoot().getChild( "service" ).add( new IfResource( "resource_with_if" ) );
+        getRoot().getChild( "service" ).add( new ObsResource( "resource_with_obs" ) );
+        getRoot().getChild( "service" ).add( new RtResource( "resource_with_rt" ) );
+        getRoot().getChild( "service" ).add( new SzResource( "resource_with_sz" ) );
+        getRoot().getChild( "service" ).add( new TitleResource( "resource_with_title" ) );       
     }
 
     /**
@@ -83,13 +91,10 @@ public class TestServer extends CoapServer
      */
     class NoneResource extends CoapResource
     {
-
         public NoneResource( String name )
         {
-
             // set resource name
             super( name );
-
             // set display name
             getAttributes().setTitle( name );
         }
@@ -100,13 +105,10 @@ public class TestServer extends CoapServer
      */
     class GetResource extends CoapResource
     {
-
         public GetResource( String name )
         {
-
             // set resource name
             super( name );
-
             // set display name
             getAttributes().setTitle( name );
         }
@@ -124,13 +126,10 @@ public class TestServer extends CoapServer
      */
     class PostResource extends CoapResource
     {
-
         public PostResource( String name )
         {
-
             // set resource name
             super( name );
-
             // set display name
             getAttributes().setTitle( name );
         }
@@ -148,13 +147,10 @@ public class TestServer extends CoapServer
      */
     class PutResource extends CoapResource
     {
-
         public PutResource( String name )
         {
-
             // set resource name
             super( name );
-
             // set display name
             getAttributes().setTitle( name );
         }
@@ -172,13 +168,10 @@ public class TestServer extends CoapServer
      */
     class DeleteResource extends CoapResource
     {
-
         public DeleteResource( String name )
         {
-
             // set resource name
             super( name );
-
             // set display name
             getAttributes().setTitle( name );
         }
@@ -190,4 +183,105 @@ public class TestServer extends CoapServer
             exchange.respond( ResponseCode.DELETED, "DELETE called on: " + this.getURI() );
         }
     }
+    
+    /**
+     * Resource with content types
+     */
+    class CtResource extends CoapResource
+    {
+        public CtResource( String name )
+        {
+            // set resource name
+            super( name );
+            // set display name
+            getAttributes().setTitle( name );
+            //set ContentType
+            getAttributes().addContentType( 0 );
+            getAttributes().addContentType( 41 );
+        }
+    }
+    
+    /**
+     * Resource with interface descriptions
+     */
+    class IfResource extends CoapResource
+    {
+        public IfResource( String name )
+        {
+            // set resource name
+            super( name );
+            // set display name
+            getAttributes().setTitle( name );
+            //set interface descriptions
+            getAttributes().addInterfaceDescription( "if1" );
+            getAttributes().addInterfaceDescription( "if2" );
+        }
+    }
+
+    //TODO add observe type option
+    /**
+     * Resource that is observable
+     */
+    class ObsResource extends CoapResource
+    {
+        public ObsResource( String name )
+        {
+            // set resource name
+            super( name );
+           // set display name
+            getAttributes().setTitle( name );
+            //set observable
+            setObservable( true );
+        }
+    }
+
+    /**
+     * Resource with resource type
+     */
+    class RtResource extends CoapResource
+    {
+        public RtResource( String name )
+        {
+            // set resource name
+            super( name );
+            // set display name
+            getAttributes().setTitle( name );
+            //set interface descriptions
+            getAttributes().addResourceType( "rt1" );
+            getAttributes().addResourceType( "rt2" );
+        }
+    }
+
+    /**
+     * Resource with size
+     */
+    class SzResource extends CoapResource
+    {
+        public SzResource( String name )
+        {
+            // set resource name
+            super( name );
+            // set display name
+            getAttributes().setTitle( name );
+            //set interface descriptions
+            getAttributes().setMaximumSizeEstimate( 123456 );
+        }
+    }
+    /**
+     * Resource with title
+     */
+    class TitleResource extends CoapResource
+    {
+        public TitleResource( String name )
+        {
+            // set resource name
+            super( name );
+            // set display name
+            getAttributes().setTitle( "Title is "+ name );
+            //set interface descriptions
+            getAttributes().setMaximumSizeEstimate( 123456 );
+        }
+    }
+
+
 }
