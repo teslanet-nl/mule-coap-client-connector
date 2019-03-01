@@ -14,13 +14,13 @@
 package nl.teslanet.mule.transport.coap.client.test.basic;
 
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
 
 import org.eclipse.californium.core.CoapServer;
+import org.eclipse.californium.core.coap.CoAP.ResponseCode;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -34,25 +34,25 @@ import org.mule.munit.runner.functional.FunctionalMunitSuite;
 
 
 @RunWith(Parameterized.class)
-public class BasicTest extends FunctionalMunitSuite
+public class ResponseTest extends FunctionalMunitSuite
 {
     /**
      * The list of tests with their parameters
      * @return Test parameters.
      */
-    @Parameters(name= "flowName= {0}, expectedResponseCode= {1}, expectedPayload= {2}")
-    public static Collection< Object[] > data()
+    @Parameters(name= "flowName= {0}, resourcePath= {1}, expectedResponseCode= {2}, expectedPayload= {3}")
+    public static Collection< Object[] > getTests()
     {
-        return Arrays.asList(
-            new Object [] []{
-                { "get_me", "2.05", "GET called on: /basic/get_me".getBytes() },
-                { "do_not_get_me", "4.05", "".getBytes()  },
-                { "post_me", "2.01", "POST called on: /basic/post_me".getBytes()  },
-                { "do_not_post_me", "4.05",  "".getBytes()  },
-                { "put_me", "2.04", "PUT called on: /basic/put_me".getBytes() },
-                { "do_not_put_me", "4.05",  "".getBytes()  },
-                { "delete_me", "2.02", "DELETE called on: /basic/delete_me".getBytes() },
-                { "do_not_delete_me", "4.05",  "".getBytes()  } } );
+        ArrayList< Object[] > tests= new ArrayList< Object[] >();
+
+        for ( ResponseCode code : ResponseCode.values() )
+        {
+            tests.add( new Object []{ "do_get", "/response/" + code.name(), code, "Response is: " + code.name() } );
+            tests.add( new Object []{ "do_post", "/response/" + code.name(), code, "Response is: " + code.name() } );
+            tests.add( new Object []{ "do_put", "/response/" + code.name(), code, "Response is: " + code.name() } );
+            tests.add( new Object []{ "do_delete", "/response/" + code.name(), code, "Response is: " + code.name() } );
+        }
+        return tests;
     }
 
     /**
@@ -62,16 +62,22 @@ public class BasicTest extends FunctionalMunitSuite
     public String flowName;
 
     /**
-     * The response code that is expected.
+     * The path of the resource to call.
      */
     @Parameter(1)
-    public String expectedResponseCode;
+    public String resourcePath;
 
     /**
-     * The payload code that is expected.
+     * The response code that is expected.
      */
     @Parameter(2)
-    public byte[] expectedPayload;
+    public ResponseCode expectedResponseCode;
+
+    /**
+     * The response payload that is expected.
+     */
+    @Parameter(3)
+    public String expectedResponsePayload;
 
     /**
      * Server to test against
@@ -84,7 +90,7 @@ public class BasicTest extends FunctionalMunitSuite
     @Override
     protected String getConfigResources()
     {
-        return "mule-config/basic/testclient1.xml";
+        return "mule-config/basic/testclient3.xml";
     };
 
     /* (non-Javadoc)
@@ -112,7 +118,7 @@ public class BasicTest extends FunctionalMunitSuite
     @BeforeClass
     public static void setUpServer() throws Exception
     {
-        server= new BasicTestServer();
+        server= new ResponseTestServer();
         server.start();
     }
 
@@ -136,13 +142,18 @@ public class BasicTest extends FunctionalMunitSuite
      * @throws Exception should not happen in this test
      */
     @Test
-    public void testRequest() throws Exception
+    public void testResponse() throws Exception
     {
         MuleEvent event= testEvent( "nothing_important" );
+        event.setFlowVariable( "host", "127.0.0.1" );
+        event.setFlowVariable( "port", "5683" );
+        event.setFlowVariable( "path", resourcePath );
         MuleEvent result= runFlow( flowName, event );
         MuleMessage response= result.getMessage();
-        assertEquals( "wrong response code", expectedResponseCode, response.getInboundProperty( "coap.response.code" ) );
-        assertArrayEquals( "wrong response payload", expectedPayload, (byte[])response.getPayload() );
+        assertEquals( "wrong response code", expectedResponseCode.toString(), response.getInboundProperty( "coap.response.code" ) );
+        assertEquals( "wrong response payload", expectedResponsePayload, response.getPayloadAsString() );
+        assertEquals( "wrong success flag", ResponseCode.isSuccess( expectedResponseCode ), response.getInboundProperty( "coap.response.success" ) );
+        //TODO test for property clienterror, servererror
     }
 
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018, 2019 (teslanet.nl) Rogier Cobben.
+ * Copyright (c) 2019 (teslanet.nl) Rogier Cobben.
  * 
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License - v 2.0 
@@ -15,34 +15,21 @@ package nl.teslanet.mule.transport.coap.client.test.blockwise;
 
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.eclipse.californium.core.CoapClient;
-import org.eclipse.californium.core.CoapResponse;
-import org.eclipse.californium.core.coap.CoAP.Code;
-import org.eclipse.californium.core.coap.CoAP.ResponseCode;
-import org.eclipse.californium.core.coap.Request;
-import org.eclipse.californium.core.network.CoapEndpoint;
-import org.eclipse.californium.core.network.config.NetworkConfig;
-import org.junit.After;
-import org.junit.Before;
+import org.eclipse.californium.core.CoapServer;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
 import org.mule.api.MuleEvent;
-import org.mule.api.MuleException;
 import org.mule.api.MuleMessage;
-import org.mule.munit.common.mocking.MessageProcessorMocker;
-import org.mule.munit.common.mocking.SpyProcess;
 import org.mule.munit.runner.functional.FunctionalMunitSuite;
 
 import nl.teslanet.mule.transport.coap.server.test.utils.Data;
@@ -51,242 +38,164 @@ import nl.teslanet.mule.transport.coap.server.test.utils.Data;
 @RunWith(Parameterized.class)
 public class PayloadTest extends FunctionalMunitSuite
 {
-    @Parameters(name= "Request= {0}, port= {1}, path= {2}, contentSize= {3}")
+    /**
+     * The list of tests with their parameters
+     * @return Test parameters.
+     */
+    @Parameters(name= "flowName= {0}, resourcePath= {1}, requestPayloadSize= {2}, expectedResponseCode= {3}, expectedResponsePayloadSize= {4}")
     public static Collection< Object[] > data()
     {
+        //TODO cf bug GET and DELETE request not blockwise
         return Arrays.asList(
             new Object [] []{
-                //default maxResourceBodySize on server
-                { Code.GET, 5683, "/service/get_me", 10, true, false },
-                { Code.PUT, 5683, "/service/put_me", 10, false, false },
-                { Code.POST, 5683, "/service/post_me", 10, false, false },
-                { Code.DELETE, 5683, "/service/delete_me", 10, true, false },
-//                { Code.GET, 5683, "/service/get_me", 8192, true, false },
-                { Code.PUT, 5683, "/service/put_me", 8192, false, false },
-                { Code.POST, 5683, "/service/post_me", 8192, false, false },
-//                { Code.DELETE, 5683, "/service/delete_me", 8192, true, false },
-//                { Code.GET, 5683, "/service/get_me", 16000, true, true },
-                { Code.PUT, 5683, "/service/put_me", 16000, false, false },
-                { Code.POST, 5683, "/service/post_me", 16000, false, false },
-//                { Code.DELETE, 5683, "/service/delete_me", 16000, true, true },
-                //16000 maxResourceBodySize on server
-                { Code.GET, 5685, "/service/get_me", 10, true, false },
-                { Code.PUT, 5685, "/service/put_me", 10, false, false },
-                { Code.POST, 5685, "/service/post_me", 10, false, false },
-                { Code.DELETE, 5685, "/service/delete_me", 10, true, false },
-//                { Code.GET, 5685, "/service/get_me", 8192, true, false },
-                { Code.PUT, 5685, "/service/put_me", 8192, false, false },
-                { Code.POST, 5685, "/service/post_me", 8192, false, false },
-//                { Code.DELETE, 5685, "/service/delete_me", 8192, true, false },
-//                { Code.GET, 5685, "/service/get_me", 16000, true, false },
-                { Code.PUT, 5685, "/service/put_me", 16000, false, false },
-                { Code.POST, 5685, "/service/post_me", 16000, false, false },
-//                { Code.DELETE, 5685, "/service/delete_me", 16000, true, false },
-//                { Code.GET, 5685, "/service/get_me", 16001, true, true },
-                { Code.PUT, 5685, "/service/put_me", 16001, false, false },
-                { Code.POST, 5685, "/service/post_me", 16001, false, false },
-//                { Code.DELETE, 5685, "/service/delete_me", 16001, true, true }, 
-            } );
-    }
+                { "do_get", "/blockwise/rq0", 0, "2.05", 2 },
+                { "do_get", "/blockwise/rsp0", 2, "2.05", 0 },
+                { "do_post", "/blockwise/rq0", 0, "2.01", 2 },
+                { "do_post", "/blockwise/rsp0", 2, "2.01", 0 },
+                { "do_put", "/blockwise/rq0", 0, "2.04", 2 },
+                { "do_put", "/blockwise/rsp0", 2, "2.04", 0 },
+                { "do_delete", "/blockwise/rq0", 0, "2.02", 2 },
+                { "do_delete", "/blockwise/rsp0", 2, "2.02", 0 },
+
+                { "do_get", "/blockwise/rq10", 10, "2.05", 2 },
+                { "do_get", "/blockwise/rsp10", 2, "2.05", 10 },
+                { "do_post", "/blockwise/rq10", 10, "2.01", 2 },
+                { "do_post", "/blockwise/rsp10", 2, "2.01", 10 },
+                { "do_put", "/blockwise/rq10", 10, "2.04", 2 },
+                { "do_put", "/blockwise/rsp10", 2, "2.04", 10 },
+                { "do_delete", "/blockwise/rq10", 10, "2.02", 2 },
+                { "do_delete", "/blockwise/rsp10", 2, "2.02", 10 },
+                
+                //{ "do_get", "/blockwise/rq8192", 8192, "2.05", 2 },
+                { "do_get", "/blockwise/rsp8192", 2, "2.05", 8192 },
+                { "do_post", "/blockwise/rq8192", 8192, "2.01", 2 },
+                { "do_post", "/blockwise/rsp8192", 2, "2.01", 8192 },
+                { "do_put", "/blockwise/rq8192", 8192, "2.04", 2 },
+                { "do_put", "/blockwise/rsp8192", 2, "2.04", 8192 },
+                //{ "do_delete", "/blockwise/rq8192", 8192, "2.02", 2 },
+                { "do_delete", "/blockwise/rsp8192", 2, "2.02", 8192 },
+                
+                //{ "do_get", "/blockwise/rq16000", 16000, "2.05", 2 },
+                { "do_get", "/blockwise/rsp16000", 2, "2.05", 16000 },
+                { "do_post", "/blockwise/rq16000", 16000, "2.01", 2 },
+                { "do_post", "/blockwise/rsp16000", 2, "2.01", 16000 },
+                { "do_put", "/blockwise/rq16000", 16000, "2.04", 2 },
+                { "do_put", "/blockwise/rsp16000", 2, "2.04", 16000 },
+                //{ "do_delete", "/blockwise/rq16000", 16000, "2.02", 2 },
+                { "do_delete", "/blockwise/rsp16000", 2, "2.02", 16000 },
+                
+                //{ "do_get", "/blockwise/rq16001", 16001, "2.05", 2 },
+                { "do_get", "/blockwise/rsp16001", 2, "2.05", 16001 },
+                { "do_post", "/blockwise/rq16001", 16001, "2.01", 2 },
+                { "do_post", "/blockwise/rsp16001", 2, "2.01", 16001 },
+                { "do_put", "/blockwise/rq16001", 16001, "2.04", 2 },
+                { "do_put", "/blockwise/rsp16001", 2, "2.04", 16001 },
+                //{ "do_delete", "/blockwise/rq16001", 16001, "2.02", 2 },
+                { "do_delete", "/blockwise/rsp16001", 2, "2.02", 16001 } 
+        } );
+}
 
     /**
-     * Request code to test
+     * The mule flow to call.
      */
     @Parameter(0)
-    public Code requestCode;
+    public String flowName;
 
     /**
-     * Test server port
+     * The path of the resource to call.
      */
     @Parameter(1)
-    public int port;
-
-    /**
-     * Test resource to call
-     */
-    @Parameter(2)
     public String resourcePath;
 
     /**
-     * Test message content size
+     * The request payload size to test.
+     */
+    @Parameter(2)
+    public Integer requestPayloadSize;
+
+    /**
+     * The response code that is expected.
      */
     @Parameter(3)
-    public int contentSize;
+    public String expectedResponseCode;
 
     /**
-     * True when request is not supposed to have a payload, but does
+     * The response payload size to test.
      */
     @Parameter(4)
-    public boolean unintendedPayload;
+    public Integer expectedResponsePayloadSize;
 
     /**
-     * True when response should be 4.13 Request Entity Too Large
+     * Server to test against
      */
-    @Parameter(5)
-    public boolean expectTooLarge;
+    private static CoapServer server= null;
 
-    /**
-     * MAX_RESOURCE_BODY_SIZE of the testclient.
+    /* (non-Javadoc)
+     * @see org.mule.munit.runner.functional.FunctionalMunitSuite#getConfigResources()
      */
-    public int maxResourceBodySize= 16001;
-
-    /**
-     * Test client. 
-     */
-    private CoapClient client= null;
-
-    /**
-     * Flag indicating the message processor that is spied on was activated 
-     */
-    private AtomicBoolean spyActivated= new AtomicBoolean();
-
     @Override
     protected String getConfigResources()
     {
-        return "mule-config/blockwise/testserver1.xml";
+        return "mule-config/blockwise/testclient1.xml";
     };
 
+    /* (non-Javadoc)
+     * @see org.mule.munit.runner.functional.FunctionalMunitSuite#haveToDisableInboundEndpoints()
+     */
     @Override
     protected boolean haveToDisableInboundEndpoints()
     {
         return false;
     }
 
+    /* (non-Javadoc)
+     * @see org.mule.munit.runner.functional.FunctionalMunitSuite#haveToMockMuleConnectors()
+     */
     @Override
     protected boolean haveToMockMuleConnectors()
     {
         return false;
     }
 
-    @Before
-    public void setUpClient() throws Exception
+    /**
+     * Start the server
+     * @throws Exception when server cannot start
+     */
+    @BeforeClass
+    public static void setUpServer() throws Exception
     {
-        client= new CoapClient( new URI( "coap", null, "127.0.0.1", port, resourcePath, null, null ) );
-        client.setTimeout( 2000L );
-        //NetworkConfig config= NetworkConfig.createStandardWithoutFile();
-        //config.setInt( NetworkConfig.Keys.MAX_RESOURCE_BODY_SIZE, maxResourceBodySize );
-        //CoapEndpoint.Builder endpointBuilder= new CoapEndpoint.Builder();
-        //endpointBuilder.setNetworkConfig( config );
-        //client.setEndpoint( endpointBuilder.build() );
+        server= new TestServer();
+        server.start();
     }
 
-    @After
-    public void tearDownClient() throws Exception
+    /**
+     * Stop the server
+     * @throws Exception when the server cannot stop
+     */
+    @AfterClass
+    public static void tearDownServer() throws Exception
     {
-        if ( client != null ) client.shutdown();
-    }
-
-    protected void validateInboundResponse( Code call, CoapResponse response )
-    {
-        boolean activated= spyActivated.get();
-
-        if ( !expectTooLarge )
+        if ( server != null )
         {
-            assertNotNull( "no response on: " + call, response );
-            assertTrue( "response indicates failure on : " + call + " response: " + response.getCode() + " msg: " + response.getResponseText(), response.isSuccess() );
-            assertTrue( "spy was not activated on: " + call, activated );
-        }
-        else
-        {
-            assertNotNull( "no response on: " + call, response );
-            assertEquals(
-                "response is not REQUEST_ENTITY_TOO_LARGE : " + call + " response: " + response.getCode() + " msg: " + response.getResponseText(),
-                ResponseCode.REQUEST_ENTITY_TOO_LARGE,
-                response.getCode() );
+            server.stop();
+            server.destroy();
+            server= null;
         }
     }
 
-    protected void validateOutboundResponse( CoapResponse response )
+    /**
+     * Test CoAP request
+     * @throws Exception should not happen in this test
+     */
+    @Test
+    public void testPayload() throws Exception
     {
-        assertNotNull( "no response on: " + requestCode, response );
-        assertTrue( "response indicates failure on : " + requestCode + " response: " + response.getCode() + " msg: " + response.getResponseText(), response.isSuccess() );
-        assertTrue( "wrong payload in response on: " + requestCode, Data.validateContent( response.getPayload(), contentSize ) );
-    }
-
-    private void mockResponseMessage()
-    {
-        MuleMessage messageToBeReturned= muleMessageWithPayload( Data.getContent( contentSize ) );
-        MessageProcessorMocker mocker= whenMessageProcessor( "set-payload" ).ofNamespace( "mule" );
-        mocker.thenReturn( messageToBeReturned );
-    }
-
-    private void spyRequestMessage()
-    {
-        SpyProcess beforeSpy= new SpyProcess()
-            {
-                @Override
-                public void spy( MuleEvent event ) throws MuleException
-                {
-                    Object payload= event.getMessage().getPayload();
-                    assertEquals( "payload has wrong class", byte[].class, payload.getClass() );
-                    assertTrue( "content invalid", Data.validateContent( (byte[]) payload, contentSize ) );
-                    spyActivated.set( true );
-                }
-            };
-
-        spyMessageProcessor( "set-payload" ).ofNamespace( "mule" ).before( beforeSpy );
-    }
-
-    @Test(timeout= 20000L)
-    public void testInboundRequest() throws URISyntaxException
-    {
-        spyRequestMessage();
-
-        spyActivated.set( false );
-        client.useLateNegotiation();
-        Request request= new Request( requestCode );
-        //if ( unintendedPayload ) request.setUnintendedPayload();
-        request.setPayload( Data.getContent( contentSize ) );
-
-        CoapResponse response= client.advanced( request );
-
-        validateInboundResponse( requestCode, response );
-    }
-
-    @Test(timeout= 20000L)
-    public void testInboundRequestEarlyNegotiation() throws URISyntaxException
-    {
-        spyRequestMessage();
-
-        spyActivated.set( false );
-        client.useEarlyNegotiation( 32 );
-        Request request= new Request( requestCode );
-        //if ( unintendedPayload ) request.setUnintendedPayload();
-        request.setPayload( Data.getContent( contentSize ) );
-
-        CoapResponse response= client.advanced( request );
-
-        validateInboundResponse( requestCode, response );
-    }
-
-    @Test(timeout= 20000L)
-    public void testOutboundRequest() throws URISyntaxException
-    {
-        mockResponseMessage();
-
-        Request request= new Request( requestCode );
-        //if ( unintendedPayload ) request.setUnintendedPayload();
-        request.setPayload( "nothing important" );
-
-        CoapResponse response= client.advanced( request );
-
-        validateOutboundResponse( response );
-    }
-
-    @Test(timeout= 20000L)
-    public void testOutboundRequestEarlyNegotiation() throws URISyntaxException
-    {
-        mockResponseMessage();
-
-        client.useEarlyNegotiation( 32 );
-
-        Request request= new Request( requestCode );
-        //if ( unintendedPayload ) request.setUnintendedPayload();
-        request.setPayload( "nothing important" );
-
-        CoapResponse response= client.advanced( request );
-
-        validateOutboundResponse( response );
+        MuleEvent event= testEvent( Data.getContent( requestPayloadSize ) );
+        event.setFlowVariable( "path", resourcePath );
+        MuleEvent result= runFlow( flowName, event );
+        MuleMessage response= result.getMessage();
+        assertEquals( "wrong response code", expectedResponseCode, response.getInboundProperty( "coap.response.code" ) );
+        assertTrue( "wrong response payload", Data.validateContent( (byte[])response.getPayload(), expectedResponsePayloadSize ) );
     }
 
 }

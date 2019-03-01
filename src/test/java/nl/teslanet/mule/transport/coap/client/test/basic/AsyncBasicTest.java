@@ -116,7 +116,7 @@ public class AsyncBasicTest extends FunctionalMunitSuite
     @BeforeClass
     public static void setUpServer() throws Exception
     {
-        server= new TestServer();
+        server= new BasicTestServer();
         server.start();
     }
 

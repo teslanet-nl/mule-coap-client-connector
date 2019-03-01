@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:vm="http://www.mulesoft.org/schema/mule/vm"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+   xmlns:coap-client="http://www.mulesoft.org/schema/mule/coap-client"
+   xmlns:spring="http://www.springframework.org/schema/beans"
+   xmlns:context="http://www.springframework.org/schema/context"
+   xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/3.9/mule-vm.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.9/mule.xsd
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.1.xsd
+http://www.mulesoft.org/schema/mule/coap-client http://www.teslanet.nl/schema/mule/coap-client/1.0/mule-coap-client.xsd">
+   <description>
+/*******************************************************************************
+ * Copyright (c) 2019 (teslanet.nl) Rogier Cobben.
+ * 
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License - v 2.0 
+ * which accompanies this distribution.
+ * 
+ * The Eclipse Public License is available at
+ *    http://www.eclipse.org/legal/epl-v20.html
+ * 
+ * Contributors:
+ *    (teslanet.nl) Rogier Cobben - initial creation
+ ******************************************************************************/
+      Mule CoAP connector test application
+   </description>
+   <coap-client:config name="config" host="127.0.0.1" logMessages="true" doc:name="CoAP Client: Configuration"/>
+      
+      
+   <sub-flow name="do_get">
+        <coap-client:async-get config-ref="config" host="#[flowVars.host]" port="#[flowVars.port]" path="#[flowVars.path]" responseHandler="handler" doc:name="CoAP Client"/>
+   </sub-flow>
+     
+   <sub-flow name="do_post">
+        <coap-client:async-post  config-ref="config" host="#[flowVars.host]" port="#[flowVars.port]" path="#[flowVars.path]" responseHandler="handler" doc:name="CoAP Client"/>
+   </sub-flow>
+      
+   <sub-flow name="do_put">
+        <coap-client:async-put config-ref="config" host="#[flowVars.host]" port="#[flowVars.port]" path="#[flowVars.path]" responseHandler="handler" doc:name="CoAP Client"/>
+   </sub-flow>
+   
+   <sub-flow name="do_delete">
+        <coap-client:async-delete config-ref="config" host="#[flowVars.host]" port="#[flowVars.port]" path="#[flowVars.path]" responseHandler="handler" doc:name="CoAP Client"/>
+   </sub-flow>
+   
+   <flow name="handler">
+       <coap-client:handle-response config-ref="config" handlerName="handler" doc:name="CoAP Client (Streaming)"/>
+      <echo-component doc:name="spy-me" />
+   </flow>
+</mule>

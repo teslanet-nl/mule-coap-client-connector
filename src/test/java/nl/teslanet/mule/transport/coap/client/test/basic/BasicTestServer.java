@@ -30,7 +30,7 @@ import org.eclipse.californium.core.server.resources.CoapExchange;
  * Server used to test client 
  *
  */
-public class TestServer extends CoapServer
+public class BasicTestServer extends CoapServer
 {
     /**
      * Network configuration is set to standards 
@@ -40,7 +40,7 @@ public class TestServer extends CoapServer
     /**
      * Default Constructor for test server.
      */
-    public TestServer() throws SocketException
+    public BasicTestServer() throws SocketException
     {
         this( CoAP.DEFAULT_COAP_PORT );
     }
@@ -48,7 +48,7 @@ public class TestServer extends CoapServer
     /**
      * Constructor for test server.
      */
-    public TestServer( int port ) throws SocketException
+    public BasicTestServer( int port ) throws SocketException
     {
         super( networkConfig );
         addEndpoints( port );

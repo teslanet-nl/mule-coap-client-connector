@@ -23,16 +23,13 @@ import java.util.Collection;
 import org.eclipse.californium.core.CoapServer;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
 import org.mule.api.MuleEvent;
 import org.mule.api.MuleMessage;
-import org.mule.api.transformer.DataType;
 import org.mule.munit.runner.functional.FunctionalMunitSuite;
 
 
@@ -48,14 +45,14 @@ public class DynamicUriBasicTest extends FunctionalMunitSuite
     {
         return Arrays.asList(
             new Object [] []{
-                { "get_me", "127.0.0.1", "8976", "/basic/get_me", "2.05", "GET called on: /basic/get_me".getBytes() },
-                { "get_me", "127.0.0.1", "8976", "/basic/do_not_get_me", "4.05", "".getBytes() },
-                { "post_me", "127.0.0.1", "8976", "/basic/post_me", "2.01", "POST called on: /basic/post_me".getBytes() },
-                { "post_me", "127.0.0.1", "8976", "/basic/do_not_post_me", "4.05", "".getBytes() },
-                { "put_me", "127.0.0.1", "8976", "/basic/put_me", "2.04", "PUT called on: /basic/put_me".getBytes() },
-                { "put_me", "127.0.0.1", "8976", "/basic/do_not_put_me", "4.05", "".getBytes() },
-                { "delete_me", "127.0.0.1", "8976", "/basic/delete_me", "2.02", "DELETE called on: /basic/delete_me".getBytes() },
-                { "delete_me", "127.0.0.1", "8976", "/basic/do_not_delete_me", "4.05", "".getBytes() } } );
+                { "do_get", "127.0.0.1", "8976", "/basic/get_me", "2.05", "GET called on: /basic/get_me".getBytes() },
+                { "do_get", "127.0.0.1", "8976", "/basic/do_not_get_me", "4.05", "".getBytes() },
+                { "do_post", "127.0.0.1", "8976", "/basic/post_me", "2.01", "POST called on: /basic/post_me".getBytes() },
+                { "do_post", "127.0.0.1", "8976", "/basic/do_not_post_me", "4.05", "".getBytes() },
+                { "do_put", "127.0.0.1", "8976", "/basic/put_me", "2.04", "PUT called on: /basic/put_me".getBytes() },
+                { "do_put", "127.0.0.1", "8976", "/basic/do_not_put_me", "4.05", "".getBytes() },
+                { "do_delete", "127.0.0.1", "8976", "/basic/delete_me", "2.02", "DELETE called on: /basic/delete_me".getBytes() },
+                { "do_delete", "127.0.0.1", "8976", "/basic/do_not_delete_me", "4.05", "".getBytes() } } );
     }
 
     /**
@@ -133,7 +130,7 @@ public class DynamicUriBasicTest extends FunctionalMunitSuite
     @BeforeClass
     public static void setUpServer() throws Exception
     {
-        server= new TestServer( 8976 );
+        server= new BasicTestServer( 8976 );
         server.start();
     }
 
