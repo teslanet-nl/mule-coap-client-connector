@@ -47,5 +47,12 @@ http://www.mulesoft.org/schema/mule/coap-client http://www.teslanet.nl/schema/mu
       <coap-client:discover config-ref="config"/>
    </sub-flow>
    
+   <sub-flow name="post">
+      <coap-client:post config-ref="config" path="/service"/>
+   </sub-flow>
+   <sub-flow name="delete">
+      <coap-client:delete config-ref="config" path="/service/#[payload]"/>
+   </sub-flow>
+   
    
 </mule>

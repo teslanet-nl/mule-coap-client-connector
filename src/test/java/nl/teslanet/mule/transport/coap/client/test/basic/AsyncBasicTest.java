@@ -142,7 +142,9 @@ public class AsyncBasicTest extends FunctionalMunitSuite
     @Test
     public void testAsyncRequest() throws Exception
     {
-        final AtomicBoolean spyIsCalled= new AtomicBoolean( false ); 
+        String spiedProcessor= "echo-component";
+        String spiedProcessorNamespace= "mule";
+        final AtomicBoolean spyIsCalled= new AtomicBoolean( false );
         SpyProcess spy= new SpyProcess()
             {
                 @Override
@@ -154,15 +156,17 @@ public class AsyncBasicTest extends FunctionalMunitSuite
                     spyIsCalled.set( true );
                 }
             };
-        spyMessageProcessor( "echo-component" ).ofNamespace( "mule" ).before( spy );
+        spyMessageProcessor( spiedProcessor ).ofNamespace( spiedProcessorNamespace ).before( spy );
 
         MuleEvent event= testEvent( "nothing_important" );
         MuleEvent result= runFlow( flowName, event );
-        
+
         //let handler do its asynchronous work
         Thread.sleep( 100L );
+        
+        verifyCallOfMessageProcessor( spiedProcessor ).ofNamespace( spiedProcessorNamespace ).times( 1 );
         MuleMessage response= result.getMessage();
-        assertTrue("spy has not been called", spyIsCalled.get());
+        assertTrue( "spy has not been called", spyIsCalled.get() );
         assertEquals( "wrong response code", null, response.getInboundProperty( "coap.response.code" ) );
         assertEquals( "wrong response payload", "nothing_important", response.getPayload() );
     }

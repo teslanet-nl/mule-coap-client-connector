@@ -19,7 +19,10 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
@@ -30,9 +33,11 @@ import static org.junit.internal.matchers.ThrowableMessageMatcher.hasMessage;
 import org.eclipse.californium.core.CoapServer;
 import org.eclipse.californium.core.WebLink;
 import org.eclipse.californium.core.coap.CoAP;
+import org.eclipse.californium.core.coap.CoAP.ResponseCode;
 import org.hamcrest.Matcher;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -240,7 +245,6 @@ public class DiscoveryTest extends FunctionalMunitSuite
         event.setFlowVariable( "port", port );
         MuleEvent result= runFlow( flowName, event );
         MuleMessage response= result.getMessage();
-        //assertEquals( "wrong response code", expectedResponseCode, response.getInboundProperty( "coap.response.code" ) );
         assertEquals( "wrong response payload", expectedPayload, (Boolean) response.getPayload() );
     }
 
@@ -255,7 +259,7 @@ public class DiscoveryTest extends FunctionalMunitSuite
         @SuppressWarnings("unchecked")
         HashMap< String, WebLink > links= linkMap( (Set< WebLink >) response.getPayload() );
 
-        assertEquals( "wrong number of weblinks", 17, links.size() );
+        assertEquals( "wrong number of weblinks", 8, links.size() );
         WebLink link= links.get( "/.well-known/core" );
         assertNotNull( "/.well-known/core is missing", link );
     }
@@ -277,7 +281,20 @@ public class DiscoveryTest extends FunctionalMunitSuite
         assertEquals( "wrong number ct", 2, ct.size() );
         assertTrue( "ct does not contain 0", ct.contains( "0" ) );
         assertTrue( "ct does not contain 41", ct.contains( "41" ) );
-    }
+
+        //check other attributes are not there
+        List< String > ifdesc= link.getAttributes().getInterfaceDescriptions();
+        assertEquals( "if unexpected", 0, ifdesc.size() );
+        boolean obs= link.getAttributes().hasObservable();
+        assertFalse( "obs unexpected", obs );
+        List< String > rt= link.getAttributes().getResourceTypes();
+        assertEquals( "rt unexpected", 0, rt.size() );
+        String sz= link.getAttributes().getMaximumSizeEstimate();
+        assertEquals( "sz unexpected", "", sz );
+        String title= link.getAttributes().getTitle();
+        assertNull( "title unexpected", title );
+
+}
 
     @Test
     public void testIf() throws Exception
@@ -296,8 +313,22 @@ public class DiscoveryTest extends FunctionalMunitSuite
         assertEquals( "wrong number of ifdesc", 2, ifdesc.size() );
         assertTrue( "ifdesc does not contain 0", ifdesc.contains( "if1" ) );
         assertTrue( "ifdesc does not contain 41", ifdesc.contains( "if2" ) );
-    }
 
+        //check other attributes are not there
+        List< String > ct= link.getAttributes().getContentTypes();
+        assertEquals( "ct unexpected", 0, ct.size() );
+        boolean obs= link.getAttributes().hasObservable();
+        assertFalse( "obs unexpected", obs );
+        List< String > rt= link.getAttributes().getResourceTypes();
+        assertEquals( "rt unexpected", 0, rt.size() );
+        String sz= link.getAttributes().getMaximumSizeEstimate();
+        assertEquals( "sz unexpected", "", sz );
+        String title= link.getAttributes().getTitle();
+        assertNull( "title unexpected", title );
+}
+
+    //TODO cf106 bug?
+    @Ignore
     @Test
     public void testObs() throws Exception
     {
@@ -313,7 +344,19 @@ public class DiscoveryTest extends FunctionalMunitSuite
         assertNotNull( "/service/resource_with_obs is missing", link );
         boolean obs= link.getAttributes().hasObservable();
         assertTrue( "obs not true", obs );
-    }
+
+        //check other attributes are not there
+        List< String > ct= link.getAttributes().getContentTypes();
+        assertEquals( "ct unexpected", 0, ct.size() );
+        List< String > ifdesc= link.getAttributes().getInterfaceDescriptions();
+        assertEquals( "if unexpected", 0, ifdesc.size() );
+        List< String > rt= link.getAttributes().getResourceTypes();
+        assertEquals( "rt unexpected", 0, rt.size() );
+        String sz= link.getAttributes().getMaximumSizeEstimate();
+        assertEquals( "sz unexpected", "", sz );
+        String title= link.getAttributes().getTitle();
+        assertNull( "title unexpected", title );
+}
 
     @Test
     public void testRt() throws Exception
@@ -332,6 +375,18 @@ public class DiscoveryTest extends FunctionalMunitSuite
         assertEquals( "wrong number of rt", 2, rt.size() );
         assertTrue( "rt does not contain rt1", rt.contains( "rt1" ) );
         assertTrue( "rt does not contain rt1", rt.contains( "rt2" ) );
+ 
+        //check other attributes are not there
+        List< String > ct= link.getAttributes().getContentTypes();
+        assertEquals( "ct unexpected", 0, ct.size() );
+        List< String > ifdesc= link.getAttributes().getInterfaceDescriptions();
+        assertEquals( "if unexpected", 0, ifdesc.size() );
+        boolean obs= link.getAttributes().hasObservable();
+        assertFalse( "obs unexpected", obs );
+        String sz= link.getAttributes().getMaximumSizeEstimate();
+        assertEquals( "sz unexpected", "", sz );
+        String title= link.getAttributes().getTitle();
+        assertNull( "title unexpected", title );
     }
 
     @Test
@@ -349,6 +404,19 @@ public class DiscoveryTest extends FunctionalMunitSuite
         assertNotNull( "/service/resource_with_sz is missing", link );
         String sz= link.getAttributes().getMaximumSizeEstimate();
         assertEquals( "sz has wrong value", "123456", sz );
+        
+        //check other attributes are not there
+        List< String > ct= link.getAttributes().getContentTypes();
+        assertEquals( "ct unexpected", 0, ct.size() );
+        List< String > ifdesc= link.getAttributes().getInterfaceDescriptions();
+        assertEquals( "if unexpected", 0, ifdesc.size() );
+        boolean obs= link.getAttributes().hasObservable();
+        assertFalse( "obs unexpected", obs );
+        List< String > rt= link.getAttributes().getResourceTypes();
+        assertEquals( "rt unexpected", 0, rt.size() );
+        String title= link.getAttributes().getTitle();
+        assertNull( "title unexpected", title );
+
     }
 
     @Test
@@ -366,5 +434,64 @@ public class DiscoveryTest extends FunctionalMunitSuite
         assertNotNull( "/service/resource_with_title is missing", link );
         String title= link.getAttributes().getTitle();
         assertEquals( "title has wrong value", "Title is resource_with_title", title );
+        
+        //check other attributes are not there
+        List< String > ct= link.getAttributes().getContentTypes();
+        assertEquals( "ct unexpected", 0, ct.size() );
+        List< String > ifdesc= link.getAttributes().getInterfaceDescriptions();
+        assertEquals( "if unexpected", 0, ifdesc.size() );
+        boolean obs= link.getAttributes().hasObservable();
+        assertFalse( "obs unexpected", obs );
+        List< String > rt= link.getAttributes().getResourceTypes();
+        assertEquals( "rt unexpected", 0, rt.size() );
+        String sz= link.getAttributes().getMaximumSizeEstimate();
+        assertEquals( "sz unexpected", "", sz );
+
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testDynamicResource() throws Exception
+    {
+        //check resource is not there
+        String flowName= "discover";
+        MuleEvent event= testEvent( "nothing_important" );
+        MuleEvent result= runFlow( flowName, event );
+        MuleMessage response= result.getMessage();       
+        HashMap< String, WebLink > links= linkMap( (Set< WebLink >) response.getPayload() );
+        WebLink link= links.get( "/service/dynamic_resource" );
+        assertNull( "/service/dynamic_resource should not be there", link );
+        
+        //create resource
+        flowName= "post";
+        event= testEvent( "dynamic_resource" );
+        result= runFlow( flowName, event );
+        response= result.getMessage();
+        assertEquals( "could not create resource", "2.01", response.getInboundProperty( "coap.response.code" ) );
+        
+        //check resource is there
+        flowName= "discover";
+        event= testEvent( "nothing_important" );
+        result= runFlow( flowName, event );
+        response= result.getMessage();
+        links = linkMap( (Set< WebLink >) response.getPayload() );
+        link= links.get( "/service/dynamic_resource" );
+        assertNotNull( "/service/dynamic_resource should not be there", link );
+        
+        //delete resource
+        flowName= "delete";
+        event= testEvent( "dynamic_resource" );
+        result= runFlow( flowName, event );
+        response= result.getMessage();
+        assertEquals( "could not delete resource", "2.02", response.getInboundProperty( "coap.response.code" ) );
+
+        //check resource is not there
+        flowName= "discover";
+        event= testEvent( "nothing_important" );
+        result= runFlow( flowName, event );
+        response= result.getMessage();       
+        links= linkMap( (Set< WebLink >) response.getPayload() );
+        link= links.get( "/service/dynamic_resource" );
+        assertNull( "/service/dynamic_resource should not be there", link );
     }
 }

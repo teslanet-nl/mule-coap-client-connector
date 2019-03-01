@@ -24,6 +24,7 @@ import org.eclipse.californium.core.coap.CoAP.ResponseCode;
 import org.eclipse.californium.core.network.CoapEndpoint;
 import org.eclipse.californium.core.network.config.NetworkConfig;
 import org.eclipse.californium.core.server.resources.CoapExchange;
+import org.eclipse.californium.core.server.resources.Resource;
 
 
 /**
@@ -57,18 +58,7 @@ public class TestServer extends CoapServer
 
     private void addResources()
     {
-        // provide an instance of a basic resource
-        add( new GetResource( "basic" ) );
-        getRoot().getChild( "basic" ).add( new GetResource( "get_me" ) );
-        getRoot().getChild( "basic" ).add( new NoneResource( "do_not_get_me" ) );
-        getRoot().getChild( "basic" ).add( new PutResource( "put_me" ) );
-        getRoot().getChild( "basic" ).add( new NoneResource( "do_not_put_me" ) );
-        getRoot().getChild( "basic" ).add( new PostResource( "post_me" ) );
-        getRoot().getChild( "basic" ).add( new NoneResource( "do_not_post_me" ) );
-        getRoot().getChild( "basic" ).add( new DeleteResource( "delete_me" ) );
-        getRoot().getChild( "basic" ).add( new NoneResource( "do_not_delete_me" ) );
-        // provide an instance of a service resource
-        add( new GetResource( "service" ) );
+        add( new PostResource( "service" ) );
         getRoot().getChild( "service" ).add( new CtResource( "resource_with_ct" ) );
         getRoot().getChild( "service" ).add( new IfResource( "resource_with_if" ) );
         getRoot().getChild( "service" ).add( new ObsResource( "resource_with_obs" ) );
@@ -122,7 +112,7 @@ public class TestServer extends CoapServer
     }
 
     /**
-     * Resource that allows POST only
+     * Resource that creates and deletes children
      */
     class PostResource extends CoapResource
     {
@@ -137,8 +127,8 @@ public class TestServer extends CoapServer
         @Override
         public void handlePOST( CoapExchange exchange )
         {
-            // respond to the request
-            exchange.respond( ResponseCode.CREATED, "POST called on: " + this.getURI() );
+            getRoot().getChild( "service" ).add( new DeleteResource( exchange.getRequestText()) );
+            exchange.respond( ResponseCode.CREATED );
         }
     }
 
@@ -179,8 +169,14 @@ public class TestServer extends CoapServer
         @Override
         public void handleDELETE( CoapExchange exchange )
         {
-            // respond to the request
-            exchange.respond( ResponseCode.DELETED, "DELETE called on: " + this.getURI() );
+            if ( getParent().delete( this ))
+            {
+                exchange.respond( ResponseCode.DELETED, "DELETE called on: " + this.getURI() );
+            }
+            else
+            {
+                exchange.respond( ResponseCode.BAD_REQUEST );
+            }
         }
     }
     
@@ -193,8 +189,6 @@ public class TestServer extends CoapServer
         {
             // set resource name
             super( name );
-            // set display name
-            getAttributes().setTitle( name );
             //set ContentType
             getAttributes().addContentType( 0 );
             getAttributes().addContentType( 41 );
@@ -210,8 +204,6 @@ public class TestServer extends CoapServer
         {
             // set resource name
             super( name );
-            // set display name
-            getAttributes().setTitle( name );
             //set interface descriptions
             getAttributes().addInterfaceDescription( "if1" );
             getAttributes().addInterfaceDescription( "if2" );
@@ -228,8 +220,6 @@ public class TestServer extends CoapServer
         {
             // set resource name
             super( name );
-           // set display name
-            getAttributes().setTitle( name );
             //set observable
             setObservable( true );
         }
@@ -244,8 +234,6 @@ public class TestServer extends CoapServer
         {
             // set resource name
             super( name );
-            // set display name
-            getAttributes().setTitle( name );
             //set interface descriptions
             getAttributes().addResourceType( "rt1" );
             getAttributes().addResourceType( "rt2" );
@@ -261,8 +249,6 @@ public class TestServer extends CoapServer
         {
             // set resource name
             super( name );
-            // set display name
-            getAttributes().setTitle( name );
             //set interface descriptions
             getAttributes().setMaximumSizeEstimate( 123456 );
         }
@@ -278,8 +264,6 @@ public class TestServer extends CoapServer
             super( name );
             // set display name
             getAttributes().setTitle( "Title is "+ name );
-            //set interface descriptions
-            getAttributes().setMaximumSizeEstimate( 123456 );
         }
     }
 
