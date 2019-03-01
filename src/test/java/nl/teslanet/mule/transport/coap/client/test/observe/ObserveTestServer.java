@@ -11,7 +11,7 @@
  * Contributors:
  *    (teslanet.nl) Rogier Cobben - initial creation
  ******************************************************************************/
-package nl.teslanet.mule.transport.coap.client.test.basic;
+package nl.teslanet.mule.transport.coap.client.test.observe;
 
 
 import java.net.InetSocketAddress;
@@ -28,10 +28,10 @@ import org.eclipse.californium.core.server.resources.Resource;
 
 
 /**
- * Server used to test client 
+ * Server used to test observing client 
  *
  */
-public class ResponseTestServer extends CoapServer
+public class ObserveTestServer extends CoapServer
 {
     /**
      * Network configuration is set to standards 
@@ -41,7 +41,7 @@ public class ResponseTestServer extends CoapServer
     /**
      * Default Constructor for test server.
      */
-    public ResponseTestServer() throws SocketException
+    public ObserveTestServer() throws SocketException
     {
         this( CoAP.DEFAULT_COAP_PORT );
     }
@@ -49,7 +49,7 @@ public class ResponseTestServer extends CoapServer
     /**
      * Constructor for test server.
      */
-    public ResponseTestServer( int port ) throws SocketException
+    public ObserveTestServer( int port ) throws SocketException
     {
         super( networkConfig );
         addEndpoints( port );
@@ -58,13 +58,11 @@ public class ResponseTestServer extends CoapServer
 
     private void addResources()
     {
-        // provide an instance of a Hello-World resource
-        add( new ResponseResource( "response", ResponseCode.CONTENT ) );
-        Resource parent= getRoot().getChild( "response" );
-        for ( ResponseCode code : ResponseCode.values() )
-        {
-            parent.add( new ResponseResource( code.name(), code) );
-        }
+        // provide an instance of an observable resource
+        add( new ObservableResource( "observe") );
+        Resource parent= getRoot().getChild( "observe" );
+        parent.add( new ObservableResource( "temporary" ) );
+        parent.add( new ObservableResource( "permanent" ) );
     }
 
     /**
@@ -79,17 +77,17 @@ public class ResponseTestServer extends CoapServer
     /**
      * Resource that to test payloads
      */
-    class ResponseResource extends CoapResource
+    class ObservableResource extends CoapResource
     {
         /**
-         * the request payload size to verify
+         * the resource content
          */
-        private ResponseCode responseCode;
+        private String content;
 
         /**
          * @param responseCode the response to return
          */
-        public ResponseResource( String name, ResponseCode responseCode )
+        public ObservableResource( String name )
         {
             // set resource name
             super( name );
@@ -97,41 +95,41 @@ public class ResponseTestServer extends CoapServer
             // set display name
             getAttributes().setTitle( name );
 
-            //set response
-            this.responseCode= responseCode;
+            //set content
+            content= "nothing";
+            
+            //make observable
+            setObservable( true );
         }
 
         @Override
         public void handleGET( CoapExchange exchange )
         {
-            handleRequest( exchange );
+            exchange.respond( ResponseCode.CONTENT, content );
         }
 
         @Override
         public void handlePOST( CoapExchange exchange )
         {
-            handleRequest( exchange );
+            content= exchange.getRequestText();
+            exchange.respond( ResponseCode.CHANGED );
+            changed();
         }
 
         @Override
         public void handlePUT( CoapExchange exchange )
         {
-            handleRequest( exchange );
+            content= exchange.getRequestText();
+            exchange.respond( ResponseCode.CHANGED );
+            changed();
         }
 
         @Override
         public void handleDELETE( CoapExchange exchange )
         {
-            handleRequest( exchange );
-        }
-
-        /**
-         * Generic handler
-         * @param exchange
-         */
-        private void handleRequest( CoapExchange exchange )
-        {
-            exchange.respond( responseCode, "Response is: " + responseCode.name() );
+            content= "nothing";
+            exchange.respond( ResponseCode.DELETED );
+            changed();
         }
     }
 }
