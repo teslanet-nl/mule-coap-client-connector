@@ -16,15 +16,20 @@ http://www.mulesoft.org/schema/mule/coap-client http://www.teslanet.nl/schema/mu
 		/*******************************************************************************
 		* Copyright (c) 2019 (teslanet.nl) Rogier Cobben.
 		*
-		* All rights reserved. This program and the accompanying materials
-		* are made available under the terms of the Eclipse Public License - v
+		* All rights
+		reserved. This program and the accompanying materials
+		* are made
+		available under the terms of the Eclipse Public License - v
 		2.0
-		* which accompanies this distribution.
+		* which
+		accompanies this distribution.
 		*
-		* The Eclipse Public License is available at
+		* The Eclipse Public License is
+		available at
 		* http://www.eclipse.org/legal/epl-v20.html
 		*
-		* Contributors:
+		*
+		Contributors:
 		* (teslanet.nl) Rogier Cobben - initial creation
 		******************************************************************************/
 		Mule CoAP connector test application
@@ -33,11 +38,9 @@ http://www.mulesoft.org/schema/mule/coap-client http://www.teslanet.nl/schema/mu
 	<coap-client:config name="config" host="127.0.0.1"
 		logMessages="true" />
 
-
 	<sub-flow name="do_get">
 		<coap-client:get config-ref="config" path="#[ flowVars.path ]" />
 	</sub-flow>
-
 
 	<sub-flow name="do_post">
 		<coap-client:post config-ref="config" path="#[ flowVars.path ]" />
