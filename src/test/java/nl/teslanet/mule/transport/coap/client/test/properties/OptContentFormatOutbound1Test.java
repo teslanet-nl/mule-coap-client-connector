@@ -14,7 +14,7 @@
 package nl.teslanet.mule.transport.coap.client.test.properties;
 
 /**
- * Test Content Format option
+ * Test outbound Content Format property
  *
  */
 public class OptContentFormatOutbound1Test extends AbstractOutboundPropertiesTest

@@ -13,22 +13,37 @@
  ******************************************************************************/
 package nl.teslanet.mule.transport.coap.client.test.properties;
 
+import java.util.LinkedList;
+
+import nl.teslanet.mule.transport.coap.commons.options.ETag;
 
 /**
- * Test outbound Content Format property
+ * Test outbound Etag list property, multiple values
  *
  */
-public class OptContentFormatOutbound2Test extends AbstractOutboundPropertiesTest
+public class OptEtagListOutbound1mTest extends AbstractOutboundPropertiesTest
 {
-    private final int value= 41;
+    /**
+     * Test value
+     * @return the value to use in test
+     */
+    private LinkedList< ETag > getValue()
+    {
+        LinkedList< ETag > list= new LinkedList< ETag >();
+        list.add( new ETag( "A0" ) );
+        list.add( new ETag( "0011FF" ) );
+        list.add( new ETag( "0011223344556677" ) );
 
+        return list;
+    }
+    
     /* (non-Javadoc)
      * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractPropertiesTest#getPropertyName()
      */
     @Override
     protected String getPropertyName()
     {
-        return "coap.opt.content_format";
+        return "coap.opt.etag.list";
     }
 
     /* (non-Javadoc)
@@ -37,7 +52,7 @@ public class OptContentFormatOutbound2Test extends AbstractOutboundPropertiesTes
     @Override
     protected Object getOutboundPropertyValue()
     {
-        return new Stringable( value );
+        return getValue();
     }
 
     /* (non-Javadoc)
@@ -46,6 +61,6 @@ public class OptContentFormatOutbound2Test extends AbstractOutboundPropertiesTes
     @Override
     protected OptionStrategy getStrategy()
     {
-        return new OptContentFormatStrategy( value );
+        return new OptEtagListStrategy( getValue() );
     }
 }

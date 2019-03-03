@@ -14,10 +14,13 @@
 package nl.teslanet.mule.transport.coap.client.test.properties;
 
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 
 import org.eclipse.californium.core.CoapServer;
 import org.eclipse.californium.core.coap.CoAP.ResponseCode;
@@ -32,7 +35,13 @@ import org.mule.api.MuleEvent;
 import org.mule.api.MuleMessage;
 import org.mule.munit.runner.functional.FunctionalMunitSuite;
 
+import nl.teslanet.mule.transport.coap.commons.options.ETag;
 
+
+/**
+ * Abstract class for testing inbound properties
+ *
+ */
 @RunWith(Parameterized.class)
 public abstract class AbstractInboundPropertiesTest extends FunctionalMunitSuite
 {
@@ -48,8 +57,7 @@ public abstract class AbstractInboundPropertiesTest extends FunctionalMunitSuite
                 { "do_get", "/property/setoption", ResponseCode.CONTENT },
                 { "do_post", "/property/setoption", ResponseCode.CHANGED },
                 { "do_put", "/property/setoption", ResponseCode.CHANGED },
-                { "do_delete", "/property/setoption", ResponseCode.DELETED }
-            });
+                { "do_delete", "/property/setoption", ResponseCode.DELETED } } );
     }
 
     /**
@@ -130,6 +138,7 @@ public abstract class AbstractInboundPropertiesTest extends FunctionalMunitSuite
      */
     protected String getFlowNameExtension()
     {
+        //default is no extension
         return "";
     }
 
@@ -139,15 +148,23 @@ public abstract class AbstractInboundPropertiesTest extends FunctionalMunitSuite
      */
     protected String getPathExtension()
     {
+        //default is no extension
         return "";
     }
 
     /**
-     * Start the server
-     * @throws Exception when server cannot start
+     * The assertion needs to know what to expect
+     * @return the type of the property expected
      */
+    protected PropertyType getPropertyType()
+    {
+        // default type is object
+        return PropertyType.Object;
+    }
+
     /**
-     * @throws Exception
+     * Start the server, when not started already
+     * @throws Exception when server cannot start
      */
     @Before
     public void setUpServer() throws Exception
@@ -174,7 +191,6 @@ public abstract class AbstractInboundPropertiesTest extends FunctionalMunitSuite
         }
     }
 
-
     /**
      * Test inbound property
      * @throws Exception should not happen in this test
@@ -187,7 +203,80 @@ public abstract class AbstractInboundPropertiesTest extends FunctionalMunitSuite
         MuleEvent result= runFlow( flowName, event );
         MuleMessage response= result.getMessage();
         assertEquals( "wrong response code", expectedResponseCode.toString(), response.getInboundProperty( "coap.response.code" ) );
-        assertEquals( "wrong inbound property value", getExpectedInboundPropertyValue(), response.getInboundProperty( getPropertyName() ) );
-    }
 
+        switch ( getPropertyType() )
+        {
+            case CollectionOfByteArray:
+            {
+                @SuppressWarnings("unchecked")
+                Collection< byte[] > property= (Collection< byte[] >) response.getInboundProperty( getPropertyName() );
+
+                @SuppressWarnings("unchecked")
+                Collection< byte[] > expected= (Collection< byte[] >) getExpectedInboundPropertyValue();
+                assertEquals( "option value list length differ", expected.size(), property.size() );
+
+                Iterator< byte[] > propertyIt= property.iterator();
+                Iterator< byte[] > expectedIt= expected.iterator();
+                while ( propertyIt.hasNext() && expectedIt.hasNext() )
+                {
+                    byte[] optionValue= propertyIt.next();
+                    byte[] expectedValue= expectedIt.next();
+                    assertArrayEquals( "value in collection not equal", expectedValue, optionValue );
+                } ;
+            }
+                break;
+
+            case CollectionOfObject:
+            {
+                @SuppressWarnings("unchecked")
+                Collection< Object > property= (Collection< Object >) response.getInboundProperty( getPropertyName() );
+
+                @SuppressWarnings("unchecked")
+                Collection< Object > expected= (Collection< Object >) getExpectedInboundPropertyValue();
+                assertEquals( "option value list length differ", expected.size(), property.size() );
+
+                Iterator< Object > propertyIt= property.iterator();
+                Iterator< Object > expectedIt= expected.iterator();
+                while ( propertyIt.hasNext() && expectedIt.hasNext() )
+                {
+                    Object optionValue= propertyIt.next();
+                    Object expectedValue= expectedIt.next();
+                    assertEquals( "value in collection not equal", expectedValue, optionValue );
+                } ;
+            }
+                break;
+
+            case CollectionOfETag:
+            {
+                @SuppressWarnings("unchecked")
+                Collection< ETag > property= (Collection< ETag >) response.getInboundProperty( getPropertyName() );
+
+                @SuppressWarnings("unchecked")
+                Collection< ETag > expected= (Collection< ETag >) getExpectedInboundPropertyValue();
+                assertEquals( "option value list length differ", expected.size(), property.size() );
+
+                Iterator< ETag > propertyIt= property.iterator();
+                Iterator< ETag > expectedIt= expected.iterator();
+                while ( propertyIt.hasNext() && expectedIt.hasNext() )
+                {
+                    ETag optionValue= propertyIt.next();
+                    ETag expectedValue= expectedIt.next();
+                    assertTrue( "value in collection not equal", expectedValue.equals( optionValue ) );
+                } ;
+            }
+                break;
+
+            case ByteArray:
+                assertArrayEquals( "wrong inbound property value", (byte[]) getExpectedInboundPropertyValue(), (byte[]) response.getInboundProperty( getPropertyName() ) );
+                break;
+
+            case ETag:
+                assertTrue( "wrong inbound property value", ( (ETag) getExpectedInboundPropertyValue() ).equals( (ETag) response.getInboundProperty( getPropertyName() ) ) );
+                break;
+
+            default:
+                assertEquals( "wrong inbound property value", getExpectedInboundPropertyValue(), response.getInboundProperty( getPropertyName() ) );
+                break;
+        }
+    }
 }

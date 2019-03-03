@@ -13,22 +13,51 @@
  ******************************************************************************/
 package nl.teslanet.mule.transport.coap.client.test.properties;
 
+
+import java.util.LinkedList;
+
+import nl.teslanet.mule.transport.coap.commons.options.ETag;
+
+
 /**
- * Test inbound Content Format property 
+ * Test inbound etag property, multiple values
  *
  */
-public class OptContentFormatInboundTest extends AbstractInboundPropertiesTest
+public class OptEtagListInbound1mTest extends AbstractInboundPropertiesTest
 {
-    private final int value= 41;
-    
+
+    /**
+     * Test value
+     * @return the value to use in test
+     */
+    private LinkedList< ETag > getValue()
+    {
+        LinkedList< ETag > list= new LinkedList< ETag >();
+        list.add( new ETag( "A0" ) );
+        list.add( new ETag( "0011FF" ) );
+        list.add( new ETag( "0011223344556677" ) );
+
+        return list;
+    }
+
     /* (non-Javadoc)
      * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractPropertiesTest#getPropertyName()
      */
     @Override
     protected String getPropertyName()
     {
-        return "coap.opt.content_format";
+        return "coap.opt.etag.list";
     }
+    
+    /* (non-Javadoc)
+     * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractInboundPropertiesTest#getPropertyType()
+     */
+    @Override
+    protected PropertyType getPropertyType()
+    {
+        return PropertyType.CollectionOfETag;
+    }
+
 
     /* (non-Javadoc)
      * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractPropertiesTest#getExpectedInboundPropertyValue()
@@ -36,15 +65,15 @@ public class OptContentFormatInboundTest extends AbstractInboundPropertiesTest
     @Override
     protected Object getExpectedInboundPropertyValue()
     {
-        return new Integer( value );
+        return getValue();
     }
-    
+
     /* (non-Javadoc)
      * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractInboundPropertiesTest#getStrategy()
      */
     @Override
     protected OptionStrategy getStrategy()
     {
-        return new OptContentFormatStrategy( value );
+        return new OptEtagListStrategy( getValue() );
     }
 }

@@ -13,22 +13,23 @@
  ******************************************************************************/
 package nl.teslanet.mule.transport.coap.client.test.properties;
 
+import nl.teslanet.mule.transport.coap.commons.options.ETag;
 
 /**
- * Test outbound Content Format property
+ * Test Etag list property, signle value
  *
  */
-public class OptContentFormatOutbound2Test extends AbstractOutboundPropertiesTest
+public class OptEtagListOutbound3Test extends AbstractOutboundPropertiesTest
 {
-    private final int value= 41;
-
+    private ETag value= new ETag( "68656C6C6F");
+    
     /* (non-Javadoc)
      * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractPropertiesTest#getPropertyName()
      */
     @Override
     protected String getPropertyName()
     {
-        return "coap.opt.content_format";
+        return "coap.opt.etag.list";
     }
 
     /* (non-Javadoc)
@@ -37,7 +38,7 @@ public class OptContentFormatOutbound2Test extends AbstractOutboundPropertiesTes
     @Override
     protected Object getOutboundPropertyValue()
     {
-        return new Stringable( value );
+        return value.asUTF8();
     }
 
     /* (non-Javadoc)
@@ -46,6 +47,6 @@ public class OptContentFormatOutbound2Test extends AbstractOutboundPropertiesTes
     @Override
     protected OptionStrategy getStrategy()
     {
-        return new OptContentFormatStrategy( value );
+        return new OptEtagListStrategy( value );
     }
 }
