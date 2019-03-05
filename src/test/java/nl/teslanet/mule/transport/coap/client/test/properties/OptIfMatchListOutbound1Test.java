@@ -13,23 +13,32 @@
  ******************************************************************************/
 package nl.teslanet.mule.transport.coap.client.test.properties;
 
+
 import nl.teslanet.mule.transport.coap.commons.options.ETag;
 
+
 /**
- * Test Etag list property, single String value
+ * Test outbound If Match list property, single etag value
  *
  */
-public class OptEtagListOutbound3Test extends AbstractOutboundPropertiesTest
+public class OptIfMatchListOutbound1Test extends AbstractOutboundPropertiesTest
 {
-    private ETag value= new ETag( "68656C6C6F");
-    
+    /**
+     * Test value
+     * @return the value to use in test
+     */
+    private ETag getValue()
+    {
+        return new ETag( "AA001122" );
+    }
+
     /* (non-Javadoc)
      * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractPropertiesTest#getPropertyName()
      */
     @Override
     protected String getPropertyName()
     {
-        return "coap.opt.etag.list";
+        return "coap.opt.if_match.list";
     }
 
     /* (non-Javadoc)
@@ -38,7 +47,7 @@ public class OptEtagListOutbound3Test extends AbstractOutboundPropertiesTest
     @Override
     protected Object getOutboundPropertyValue()
     {
-        return value.asUTF8();
+        return getValue();
     }
 
     /* (non-Javadoc)
@@ -47,6 +56,6 @@ public class OptEtagListOutbound3Test extends AbstractOutboundPropertiesTest
     @Override
     protected OptionStrategy getStrategy()
     {
-        return new OptEtagListStrategy( value );
+        return new OptIfMatchListStrategy( getValue() );
     }
 }

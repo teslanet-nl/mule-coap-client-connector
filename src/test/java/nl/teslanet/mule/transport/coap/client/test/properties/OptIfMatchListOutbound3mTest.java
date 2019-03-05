@@ -13,15 +13,29 @@
  ******************************************************************************/
 package nl.teslanet.mule.transport.coap.client.test.properties;
 
+import java.util.LinkedList;
+
 import nl.teslanet.mule.transport.coap.commons.options.ETag;
 
 /**
- * Test Etag list property, single String value
+ * Test outbound If Match list property, multiple String value
  *
  */
-public class OptEtagListOutbound3Test extends AbstractOutboundPropertiesTest
+public class OptIfMatchListOutbound3mTest extends AbstractOutboundPropertiesTest
 {
-    private ETag value= new ETag( "68656C6C6F");
+    /**
+     * Test value
+     * @return the value to use in test
+     */
+    private LinkedList< ETag > getValue()
+    {
+        LinkedList< ETag  > list= new LinkedList< ETag >();
+        list.add( new ETag( "68656C6C6F" ) );
+        list.add( new ETag( "6F6C6C61" ) );
+        list.add( new ETag( "686F69" ) );
+
+        return list;
+    }
     
     /* (non-Javadoc)
      * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractPropertiesTest#getPropertyName()
@@ -29,7 +43,7 @@ public class OptEtagListOutbound3Test extends AbstractOutboundPropertiesTest
     @Override
     protected String getPropertyName()
     {
-        return "coap.opt.etag.list";
+        return "coap.opt.if_match.list";
     }
 
     /* (non-Javadoc)
@@ -38,7 +52,12 @@ public class OptEtagListOutbound3Test extends AbstractOutboundPropertiesTest
     @Override
     protected Object getOutboundPropertyValue()
     {
-        return value.asUTF8();
+        LinkedList<String> propertyValue= new LinkedList<String>();
+        for ( ETag value : getValue() )
+        {
+            propertyValue.add( value.asUTF8() );
+        }
+        return propertyValue;
     }
 
     /* (non-Javadoc)
@@ -47,6 +66,6 @@ public class OptEtagListOutbound3Test extends AbstractOutboundPropertiesTest
     @Override
     protected OptionStrategy getStrategy()
     {
-        return new OptEtagListStrategy( value );
+        return new OptIfMatchListStrategy( getValue() );
     }
 }
