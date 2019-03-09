@@ -13,25 +13,17 @@
  ******************************************************************************/
 package nl.teslanet.mule.transport.coap.client.test.properties;
 
-import java.util.LinkedList;
+import org.junit.Ignore;
 
 /**
- * Test outbound location path list property, single value
+ * Test outbound size1 property, as Integer
  *
  */
-public class OptLocationPathListOutbound1Test extends AbstractOutboundPropertiesTest
+//TODO cf bug
+@Ignore
+public class OptSize1Outbound1Test extends AbstractOutboundPropertiesTest
 {
-    /**
-     * Test value
-     * @return the value to use in test
-     */
-    private LinkedList< String > getValue()
-    {
-        LinkedList< String > list= new LinkedList< String >();
-        list.add( "test" );
-
-        return list;
-    }
+    private final int value= 133;
     
     /* (non-Javadoc)
      * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractPropertiesTest#getPropertyName()
@@ -39,7 +31,7 @@ public class OptLocationPathListOutbound1Test extends AbstractOutboundProperties
     @Override
     protected String getPropertyName()
     {
-        return "coap.opt.location_path.list";
+        return "coap.opt.size1";
     }
 
     /* (non-Javadoc)
@@ -48,7 +40,7 @@ public class OptLocationPathListOutbound1Test extends AbstractOutboundProperties
     @Override
     protected Object getOutboundPropertyValue()
     {
-        return getValue();
+        return new Integer( value );
     }
 
     /* (non-Javadoc)
@@ -57,6 +49,6 @@ public class OptLocationPathListOutbound1Test extends AbstractOutboundProperties
     @Override
     protected OptionStrategy getStrategy()
     {
-        return new OptLocationPathStrategy( getValue() );
+        return new OptSize1Strategy( value );
     }
 }

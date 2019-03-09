@@ -163,12 +163,15 @@ public class ObserveTest extends FunctionalMunitSuite
 
         assertEquals( "wrong count of observations", contents.size(), observations.size() );
 
+        int obsOffset= 0;
         for ( int i= 0; i < observations.size(); i++ )
         {
             MuleMessage response= observations.get( i );
+            if ( i == 0 ) obsOffset= ((Integer) response.getInboundProperty( "coap.opt.observe" )).intValue();
             assertNotEquals( "observation nr: " + i + " is empty", NullPayload.getInstance(), response.getPayload() );
             assertTrue( "observation nr: " + i + " indicates failure", (Boolean) response.getInboundProperty( "coap.response.success" ) );
             assertEquals( "observation nr: " + i + " has wrong content", contents.get( i ), response.getPayloadAsString() );
+            assertEquals( "observation nr: " + i + " has wrong observe option", obsOffset + i, ((Integer) response.getInboundProperty( "coap.opt.observe" )).intValue() );
         }
     }
 
@@ -244,13 +247,15 @@ public class ObserveTest extends FunctionalMunitSuite
         verifyCallOfMessageProcessor( spiedProcessor ).ofNamespace( spiedProcessorNamespace ).times( contents.size() + 1 );
 
         assertEquals( "wrong count of observations", contents.size() + 1, observations.size() );
-
+        int obsOffset= 0;
         for ( int i= 1; i < contents.size(); i++ )
         {
             response= observations.get( i );
+            if ( i == 1 ) obsOffset= ((Integer) response.getInboundProperty( "coap.opt.observe" )).intValue() - 1;
             assertNotEquals( "observation nr: " + i + " is empty", NullPayload.getInstance(), response.getPayload() );
             assertTrue( "observation nr: " + i + " indicates failure", (Boolean) response.getInboundProperty( "coap.response.success" ) );
             assertEquals( "observation nr: " + i + " has wrong content", contents.get( i ), response.getPayloadAsString() );
+            assertEquals( "observation nr: " + i + " has wrong observe option", obsOffset + i, ((Integer) response.getInboundProperty( "coap.opt.observe" )).intValue() );
         }
     }
 

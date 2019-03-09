@@ -13,33 +13,29 @@
  ******************************************************************************/
 package nl.teslanet.mule.transport.coap.client.test.properties;
 
-import java.util.LinkedList;
 
 /**
- * Test outbound location path list property, single value
+ * Test outbound proxy scheme property, stringable value
  *
  */
-public class OptLocationPathListOutbound1Test extends AbstractOutboundPropertiesTest
+public class OptProxyUriOutbound2Test extends AbstractOutboundPropertiesTest
 {
     /**
-     * Test value
-     * @return the value to use in test
+     * Test other option
+     * @return the option to use in test
      */
-    private LinkedList< String > getValue()
+    private String getValue()
     {
-        LinkedList< String > list= new LinkedList< String >();
-        list.add( "test" );
-
-        return list;
+        return new String( "coap://some.server.org/test" );
     }
-    
+
     /* (non-Javadoc)
      * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractPropertiesTest#getPropertyName()
      */
     @Override
     protected String getPropertyName()
     {
-        return "coap.opt.location_path.list";
+        return "coap.opt.proxy_uri";
     }
 
     /* (non-Javadoc)
@@ -48,7 +44,7 @@ public class OptLocationPathListOutbound1Test extends AbstractOutboundProperties
     @Override
     protected Object getOutboundPropertyValue()
     {
-        return getValue();
+        return new Stringable( getValue() );
     }
 
     /* (non-Javadoc)
@@ -57,6 +53,6 @@ public class OptLocationPathListOutbound1Test extends AbstractOutboundProperties
     @Override
     protected OptionStrategy getStrategy()
     {
-        return new OptLocationPathStrategy( getValue() );
+        return new OptProxyUriStrategy( getValue() );
     }
 }

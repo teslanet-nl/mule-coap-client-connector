@@ -15,10 +15,8 @@ package nl.teslanet.mule.transport.coap.client.test.properties;
 
 import java.util.LinkedList;
 
-import nl.teslanet.mule.transport.coap.commons.options.ETag;
-
 /**
- * Test outbound location path list property, multiple values
+ * Test outbound location path list property, single value
  *
  */
 public class OptLocationPathListOutbound2Test extends AbstractOutboundPropertiesTest

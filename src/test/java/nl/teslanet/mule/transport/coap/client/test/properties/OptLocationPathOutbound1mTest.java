@@ -16,10 +16,10 @@ package nl.teslanet.mule.transport.coap.client.test.properties;
 import java.util.LinkedList;
 
 /**
- * Test outbound location path list property, single value
+ * Test outbound location path property, multiple values
  *
  */
-public class OptLocationPathListOutbound1Test extends AbstractOutboundPropertiesTest
+public class OptLocationPathOutbound1mTest extends AbstractOutboundPropertiesTest
 {
     /**
      * Test value
@@ -29,6 +29,8 @@ public class OptLocationPathListOutbound1Test extends AbstractOutboundProperties
     {
         LinkedList< String > list= new LinkedList< String >();
         list.add( "test" );
+        list.add( "this" );
+        list.add( "path" );
 
         return list;
     }
@@ -39,7 +41,7 @@ public class OptLocationPathListOutbound1Test extends AbstractOutboundProperties
     @Override
     protected String getPropertyName()
     {
-        return "coap.opt.location_path.list";
+        return "coap.opt.location_path";
     }
 
     /* (non-Javadoc)
@@ -48,7 +50,7 @@ public class OptLocationPathListOutbound1Test extends AbstractOutboundProperties
     @Override
     protected Object getOutboundPropertyValue()
     {
-        return getValue();
+        return new String("/test/this/path");
     }
 
     /* (non-Javadoc)

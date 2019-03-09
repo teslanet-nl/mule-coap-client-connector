@@ -13,13 +13,15 @@
  ******************************************************************************/
 package nl.teslanet.mule.transport.coap.client.test.properties;
 
+
 import java.util.LinkedList;
 
+
 /**
- * Test outbound location path list property, single value
+ * Test outbound location query list property, multiple values
  *
  */
-public class OptLocationPathListOutbound1Test extends AbstractOutboundPropertiesTest
+public class OptLocationQueryListOutbound2mTest extends AbstractOutboundPropertiesTest
 {
     /**
      * Test value
@@ -28,18 +30,20 @@ public class OptLocationPathListOutbound1Test extends AbstractOutboundProperties
     private LinkedList< String > getValue()
     {
         LinkedList< String > list= new LinkedList< String >();
-        list.add( "test" );
+        list.add( "first=1" );
+        list.add( "second=2" );
+        list.add( "third=3" );
 
         return list;
     }
-    
+
     /* (non-Javadoc)
      * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractPropertiesTest#getPropertyName()
      */
     @Override
     protected String getPropertyName()
     {
-        return "coap.opt.location_path.list";
+        return "coap.opt.location_query.list";
     }
 
     /* (non-Javadoc)
@@ -48,7 +52,12 @@ public class OptLocationPathListOutbound1Test extends AbstractOutboundProperties
     @Override
     protected Object getOutboundPropertyValue()
     {
-        return getValue();
+        LinkedList< Stringable > list= new LinkedList< Stringable >();
+        for ( String segment : getValue())
+        {
+            list.add( new Stringable( segment ) );
+        }
+        return list;
     }
 
     /* (non-Javadoc)
@@ -57,6 +66,6 @@ public class OptLocationPathListOutbound1Test extends AbstractOutboundProperties
     @Override
     protected OptionStrategy getStrategy()
     {
-        return new OptLocationPathStrategy( getValue() );
+        return new OptLocationQueryStrategy( getValue() );
     }
 }

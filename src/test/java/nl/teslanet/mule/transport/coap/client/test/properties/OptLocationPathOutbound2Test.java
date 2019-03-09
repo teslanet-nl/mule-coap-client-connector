@@ -19,7 +19,7 @@ import java.util.LinkedList;
  * Test outbound location path list property, single value
  *
  */
-public class OptLocationPathListOutbound1Test extends AbstractOutboundPropertiesTest
+public class OptLocationPathOutbound2Test extends AbstractOutboundPropertiesTest
 {
     /**
      * Test value
@@ -39,7 +39,7 @@ public class OptLocationPathListOutbound1Test extends AbstractOutboundProperties
     @Override
     protected String getPropertyName()
     {
-        return "coap.opt.location_path.list";
+        return "coap.opt.location_path";
     }
 
     /* (non-Javadoc)
@@ -48,7 +48,7 @@ public class OptLocationPathListOutbound1Test extends AbstractOutboundProperties
     @Override
     protected Object getOutboundPropertyValue()
     {
-        return getValue();
+        return new Stringable("/test");
     }
 
     /* (non-Javadoc)

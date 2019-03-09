@@ -36,7 +36,7 @@ http://www.mulesoft.org/schema/mule/coap-client http://www.teslanet.nl/schema/mu
 	</description>
 
 	<coap-client:config name="config" host="127.0.0.1"
-		logMessages="true" />
+		logMessages="true" exchangeLifetime="5000"/>
 
 	<sub-flow name="do_get">
 		<coap-client:get config-ref="config" path="#[ flowVars.path ]" />

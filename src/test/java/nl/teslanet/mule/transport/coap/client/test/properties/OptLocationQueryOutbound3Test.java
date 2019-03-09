@@ -16,10 +16,10 @@ package nl.teslanet.mule.transport.coap.client.test.properties;
 import java.util.LinkedList;
 
 /**
- * Test outbound location path list property, single value
+ * Test outbound location query property, single value and leading '?'
  *
  */
-public class OptLocationPathListOutbound1Test extends AbstractOutboundPropertiesTest
+public class OptLocationQueryOutbound3Test extends AbstractOutboundPropertiesTest
 {
     /**
      * Test value
@@ -28,7 +28,7 @@ public class OptLocationPathListOutbound1Test extends AbstractOutboundProperties
     private LinkedList< String > getValue()
     {
         LinkedList< String > list= new LinkedList< String >();
-        list.add( "test" );
+        list.add( "first=1" );
 
         return list;
     }
@@ -39,7 +39,7 @@ public class OptLocationPathListOutbound1Test extends AbstractOutboundProperties
     @Override
     protected String getPropertyName()
     {
-        return "coap.opt.location_path.list";
+        return "coap.opt.location_query";
     }
 
     /* (non-Javadoc)
@@ -48,7 +48,7 @@ public class OptLocationPathListOutbound1Test extends AbstractOutboundProperties
     @Override
     protected Object getOutboundPropertyValue()
     {
-        return getValue();
+        return new String("?first=1");
     }
 
     /* (non-Javadoc)
@@ -57,6 +57,6 @@ public class OptLocationPathListOutbound1Test extends AbstractOutboundProperties
     @Override
     protected OptionStrategy getStrategy()
     {
-        return new OptLocationPathStrategy( getValue() );
+        return new OptLocationQueryStrategy( getValue() );
     }
 }

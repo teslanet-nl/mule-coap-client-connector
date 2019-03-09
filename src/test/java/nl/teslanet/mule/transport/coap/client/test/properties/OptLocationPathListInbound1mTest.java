@@ -13,14 +13,17 @@
  ******************************************************************************/
 package nl.teslanet.mule.transport.coap.client.test.properties;
 
+
 import java.util.LinkedList;
 
+
 /**
- * Test outbound location path list property, single value
+ * Test inbound location path list property, multiple values
  *
  */
-public class OptLocationPathListOutbound1Test extends AbstractOutboundPropertiesTest
+public class OptLocationPathListInbound1mTest extends AbstractInboundPropertiesTest
 {
+
     /**
      * Test value
      * @return the value to use in test
@@ -29,10 +32,12 @@ public class OptLocationPathListOutbound1Test extends AbstractOutboundProperties
     {
         LinkedList< String > list= new LinkedList< String >();
         list.add( "test" );
+        list.add( "this" );
+        list.add( "path" );
 
         return list;
     }
-    
+
     /* (non-Javadoc)
      * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractPropertiesTest#getPropertyName()
      */
@@ -41,18 +46,28 @@ public class OptLocationPathListOutbound1Test extends AbstractOutboundProperties
     {
         return "coap.opt.location_path.list";
     }
-
+    
     /* (non-Javadoc)
-     * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractPropertiesTest#getOutboundPropertyValue()
+     * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractInboundPropertiesTest#getPropertyType()
      */
     @Override
-    protected Object getOutboundPropertyValue()
+    protected PropertyType getPropertyType()
+    {
+        return PropertyType.CollectionOfObject;
+    }
+
+
+    /* (non-Javadoc)
+     * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractPropertiesTest#getExpectedInboundPropertyValue()
+     */
+    @Override
+    protected Object getExpectedInboundPropertyValue()
     {
         return getValue();
     }
 
     /* (non-Javadoc)
-     * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractOutboundPropertiesTest#getStrategy()
+     * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractInboundPropertiesTest#getStrategy()
      */
     @Override
     protected OptionStrategy getStrategy()

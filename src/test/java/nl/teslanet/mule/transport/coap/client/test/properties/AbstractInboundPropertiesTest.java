@@ -16,6 +16,7 @@ package nl.teslanet.mule.transport.coap.client.test.properties;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
@@ -210,6 +211,7 @@ public abstract class AbstractInboundPropertiesTest extends FunctionalMunitSuite
             {
                 @SuppressWarnings("unchecked")
                 Collection< byte[] > property= (Collection< byte[] >) response.getInboundProperty( getPropertyName() );
+                assertNotNull("property is not found in inbound scope", property );
 
                 @SuppressWarnings("unchecked")
                 Collection< byte[] > expected= (Collection< byte[] >) getExpectedInboundPropertyValue();
@@ -230,6 +232,7 @@ public abstract class AbstractInboundPropertiesTest extends FunctionalMunitSuite
             {
                 @SuppressWarnings("unchecked")
                 Collection< Object > property= (Collection< Object >) response.getInboundProperty( getPropertyName() );
+                assertNotNull("property is not found in inbound scope", property );
 
                 @SuppressWarnings("unchecked")
                 Collection< Object > expected= (Collection< Object >) getExpectedInboundPropertyValue();
@@ -250,6 +253,7 @@ public abstract class AbstractInboundPropertiesTest extends FunctionalMunitSuite
             {
                 @SuppressWarnings("unchecked")
                 Collection< ETag > property= (Collection< ETag >) response.getInboundProperty( getPropertyName() );
+                assertNotNull("property is not found in inbound scope", property );
 
                 @SuppressWarnings("unchecked")
                 Collection< ETag > expected= (Collection< ETag >) getExpectedInboundPropertyValue();
