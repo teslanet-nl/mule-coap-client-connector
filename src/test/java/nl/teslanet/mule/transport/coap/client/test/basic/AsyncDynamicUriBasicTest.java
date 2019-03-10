@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.californium.core.CoapServer;
+import org.eclipse.californium.core.coap.CoAP.Code;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -49,14 +50,14 @@ public class AsyncDynamicUriBasicTest extends FunctionalMunitSuite
     {
         return Arrays.asList(
             new Object [] []{
-                { "do_get", "127.0.0.1", "8976", "/basic/get_me", "2.05", "GET called on: /basic/get_me".getBytes() },
-                { "do_get", "127.0.0.1", "8976", "/basic/do_not_get_me", "4.05", "".getBytes() },
-                { "do_post", "127.0.0.1", "8976", "/basic/post_me", "2.01", "POST called on: /basic/post_me".getBytes() },
-                { "do_post", "127.0.0.1", "8976", "/basic/do_not_post_me", "4.05", "".getBytes() },
-                { "do_put", "127.0.0.1", "8976", "/basic/put_me", "2.04", "PUT called on: /basic/put_me".getBytes() },
-                { "do_put", "127.0.0.1", "8976", "/basic/do_not_put_me", "4.05", "".getBytes() },
-                { "do_delete", "127.0.0.1", "8976", "/basic/delete_me", "2.02", "DELETE called on: /basic/delete_me".getBytes() },
-                { "do_delete", "127.0.0.1", "8976", "/basic/do_not_delete_me", "4.05", "".getBytes() } } );
+                { "do_get", Code.GET, "127.0.0.1", "8976", "/basic/get_me", "2.05", "coap://127.0.0.1:8976/basic/get_me", "GET called on: /basic/get_me".getBytes() },
+                { "do_get", Code.GET, "127.0.0.1", "8976", "/basic/do_not_get_me", "4.05", "coap://127.0.0.1:8976/basic/do_not_get_me", "".getBytes() },
+                { "do_post", Code.POST, "127.0.0.1", "8976", "/basic/post_me", "2.01", "coap://127.0.0.1:8976/basic/post_me", "POST called on: /basic/post_me".getBytes() },
+                { "do_post", Code.POST, "127.0.0.1", "8976", "/basic/do_not_post_me", "4.05", "coap://127.0.0.1:8976/basic/do_not_post_me", "".getBytes() },
+                { "do_put", Code.PUT, "127.0.0.1", "8976", "/basic/put_me", "2.04", "coap://127.0.0.1:8976/basic/put_me", "PUT called on: /basic/put_me".getBytes() },
+                { "do_put", Code.PUT, "127.0.0.1", "8976", "/basic/do_not_put_me", "4.05", "coap://127.0.0.1:8976/basic/do_not_put_me", "".getBytes() },
+                { "do_delete", Code.DELETE, "127.0.0.1", "8976", "/basic/delete_me", "2.02", "coap://127.0.0.1:8976/basic/delete_me", "DELETE called on: /basic/delete_me".getBytes() },
+                { "do_delete", Code.DELETE, "127.0.0.1", "8976", "/basic/do_not_delete_me", "4.05", "coap://127.0.0.1:8976/basic/do_not_delete_me", "".getBytes() } } );
     }
 
     /**
@@ -66,34 +67,47 @@ public class AsyncDynamicUriBasicTest extends FunctionalMunitSuite
     public String flowName;
 
     /**
-     * The server host to call.
+     * The request code that is expected.
      */
     @Parameter(1)
+    public Code expectedRequestCode;
+
+    /**
+     * The server host to call.
+     */
+    @Parameter(2)
     public String host;
 
     /**
      * The server port to call.
      */
-    @Parameter(2)
+    @Parameter(3)
     public String port;
 
     /**
      * The server path to call.
      */
-    @Parameter(3)
+    @Parameter(4)
     public String path;
 
     /**
      * The response code that is expected.
      */
-    @Parameter(4)
+    @Parameter(5)
     public String expectedResponseCode;
 
     /**
+     * The request uri that is expected.
+     */
+    @Parameter(6)
+    public String expectedRequestUri;
+
+   /**
      * The payload code that is expected.
      */
-    @Parameter(5)
+    @Parameter(7)
     public byte[] expectedPayload;
+
 
     /**
      * Server to test against
@@ -169,6 +183,8 @@ public class AsyncDynamicUriBasicTest extends FunctionalMunitSuite
                 public void spy( MuleEvent event ) throws MuleException
                 {
                     MuleMessage response= event.getMessage();
+                    assertEquals( "wrong request code", expectedRequestCode, response.getInboundProperty( "coap.request.code" ) );
+                    assertEquals( "wrong request uri", expectedRequestUri, response.getInboundProperty( "coap.request.uri" ) );
                     assertEquals( "wrong response code", expectedResponseCode, response.getInboundProperty( "coap.response.code" ) );
                     assertArrayEquals( "wrong response payload", expectedPayload, (byte[]) response.getPayload() );
                     spyIsCalled.set( true );

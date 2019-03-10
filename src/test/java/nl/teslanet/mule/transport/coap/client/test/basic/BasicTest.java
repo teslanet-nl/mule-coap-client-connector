@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import org.eclipse.californium.core.CoapServer;
+import org.eclipse.californium.core.coap.CoAP.Code;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -32,6 +33,7 @@ import org.mule.api.MuleEvent;
 import org.mule.api.MuleMessage;
 import org.mule.munit.runner.functional.FunctionalMunitSuite;
 
+//TODO bug Code should be string
 
 @RunWith(Parameterized.class)
 public class BasicTest extends FunctionalMunitSuite
@@ -40,19 +42,19 @@ public class BasicTest extends FunctionalMunitSuite
      * The list of tests with their parameters
      * @return Test parameters.
      */
-    @Parameters(name= "flowName= {0}, expectedResponseCode= {1}, expectedPayload= {2}")
+    @Parameters(name= "flowName= {0}" )
     public static Collection< Object[] > data()
     {
         return Arrays.asList(
             new Object [] []{
-                { "get_me", "2.05", "GET called on: /basic/get_me".getBytes() },
-                { "do_not_get_me", "4.05", "".getBytes()  },
-                { "post_me", "2.01", "POST called on: /basic/post_me".getBytes()  },
-                { "do_not_post_me", "4.05",  "".getBytes()  },
-                { "put_me", "2.04", "PUT called on: /basic/put_me".getBytes() },
-                { "do_not_put_me", "4.05",  "".getBytes()  },
-                { "delete_me", "2.02", "DELETE called on: /basic/delete_me".getBytes() },
-                { "do_not_delete_me", "4.05",  "".getBytes()  } } );
+                { "get_me", Code.GET, "coap://127.0.0.1:5683/basic/get_me", "2.05", "GET called on: /basic/get_me".getBytes() },
+                { "do_not_get_me", Code.GET, "coap://127.0.0.1:5683/basic/do_not_get_me", "4.05", "".getBytes()  },
+                { "post_me", Code.POST, "coap://127.0.0.1:5683/basic/post_me", "2.01", "POST called on: /basic/post_me".getBytes()  },
+                { "do_not_post_me", Code.POST, "coap://127.0.0.1:5683/basic/do_not_post_me", "4.05",  "".getBytes()  },
+                { "put_me", Code.PUT, "coap://127.0.0.1:5683/basic/put_me", "2.04", "PUT called on: /basic/put_me".getBytes() },
+                { "do_not_put_me", Code.PUT, "coap://127.0.0.1:5683/basic/do_not_put_me", "4.05",  "".getBytes()  },
+                { "delete_me", Code.DELETE, "coap://127.0.0.1:5683/basic/delete_me", "2.02", "DELETE called on: /basic/delete_me".getBytes() },
+                { "do_not_delete_me", Code.DELETE, "coap://127.0.0.1:5683/basic/do_not_delete_me", "4.05",  "".getBytes()  } } );
     }
 
     /**
@@ -62,15 +64,27 @@ public class BasicTest extends FunctionalMunitSuite
     public String flowName;
 
     /**
-     * The response code that is expected.
+     * The request code that is expected.
      */
     @Parameter(1)
+    public Code expectedRequestCode;
+
+    /**
+     * The request uri that is expected.
+     */
+    @Parameter(2)
+    public String expectedRequestUri;
+
+    /**
+     * The response code that is expected.
+     */
+    @Parameter(3)
     public String expectedResponseCode;
 
     /**
      * The payload code that is expected.
      */
-    @Parameter(2)
+    @Parameter(4)
     public byte[] expectedPayload;
 
     /**
@@ -141,6 +155,8 @@ public class BasicTest extends FunctionalMunitSuite
         MuleEvent event= testEvent( "nothing_important" );
         MuleEvent result= runFlow( flowName, event );
         MuleMessage response= result.getMessage();
+        assertEquals( "wrong request code", expectedRequestCode, response.getInboundProperty( "coap.request.code" ) );
+        assertEquals( "wrong request uri", expectedRequestUri, response.getInboundProperty( "coap.request.uri" ) );
         assertEquals( "wrong response code", expectedResponseCode, response.getInboundProperty( "coap.response.code" ) );
         assertArrayEquals( "wrong response payload", expectedPayload, (byte[])response.getPayload() );
     }
