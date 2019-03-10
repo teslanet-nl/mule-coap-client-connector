@@ -27,7 +27,7 @@ public class OptIfNoneMatchStrategy implements OptionStrategy
 
     /**
      * Constructor 
-     * @param value the if non match value
+     * @param value the test value
      */
     public OptIfNoneMatchStrategy( Boolean value )
     {

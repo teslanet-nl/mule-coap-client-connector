@@ -27,7 +27,7 @@ public class OptMaxAgeStrategy implements OptionStrategy
 
     /**
      * Constructor 
-     * @param value the if location value
+     * @param value the test value
      */
     public OptMaxAgeStrategy( Long value )
     {

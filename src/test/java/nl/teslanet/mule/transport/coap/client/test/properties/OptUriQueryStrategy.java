@@ -31,7 +31,7 @@ public class OptUriQueryStrategy implements OptionStrategy
 
     /**
      * Constructor 
-     * @param value the if uri value
+     * @param value the test value
      */
     public OptUriQueryStrategy( LinkedList< String > value )
     {

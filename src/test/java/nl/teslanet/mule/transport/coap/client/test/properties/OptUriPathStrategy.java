@@ -31,7 +31,7 @@ public class OptUriPathStrategy implements OptionStrategy
 
     /**
      * Constructor 
-     * @param value the if location value
+     * @param value the test value
      */
     public OptUriPathStrategy( LinkedList< String > value )
     {

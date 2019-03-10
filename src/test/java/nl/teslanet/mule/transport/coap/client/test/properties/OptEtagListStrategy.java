@@ -33,7 +33,7 @@ public class OptEtagListStrategy implements OptionStrategy
 
     /**
      * Constructor using single etag
-     * @param value the etag value
+     * @param value the test value
      */
     public OptEtagListStrategy( ETag value )
     {

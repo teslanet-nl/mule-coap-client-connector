@@ -27,7 +27,7 @@ public class OptObserveStrategy implements OptionStrategy
 
     /**
      * Constructor 
-     * @param value the value to test
+     * @param value the test value
      */
     public OptObserveStrategy( Integer value )
     {

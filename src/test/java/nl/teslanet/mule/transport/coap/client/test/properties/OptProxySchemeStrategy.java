@@ -30,7 +30,7 @@ public class OptProxySchemeStrategy implements OptionStrategy
 
     /**
      * Constructor 
-     * @param value the value to test
+     * @param value the test value
      */
     public OptProxySchemeStrategy( String value )
     {

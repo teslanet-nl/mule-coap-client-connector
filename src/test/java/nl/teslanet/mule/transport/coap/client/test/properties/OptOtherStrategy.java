@@ -31,7 +31,7 @@ public class OptOtherStrategy implements OptionStrategy
 
     /**
      * Constructor 
-     * @param value the value to test
+     * @param value the test value
      */
     public OptOtherStrategy( Option value )
     {

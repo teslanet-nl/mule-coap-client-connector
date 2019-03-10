@@ -31,7 +31,7 @@ public class OptLocationQueryStrategy implements OptionStrategy
 
     /**
      * Constructor 
-     * @param value the if location value
+     * @param value the test value
      */
     public OptLocationQueryStrategy( LinkedList< String > value )
     {

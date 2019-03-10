@@ -30,7 +30,7 @@ public class OptProxyUriStrategy implements OptionStrategy
 
     /**
      * Constructor 
-     * @param value the value to test
+     * @param value the test value
      */
     public OptProxyUriStrategy( String value )
     {
