@@ -25,7 +25,7 @@ import org.eclipse.californium.core.network.CoapEndpoint;
 import org.eclipse.californium.core.network.config.NetworkConfig;
 import org.eclipse.californium.core.server.resources.CoapExchange;
 
-import nl.teslanet.mule.transport.coap.server.test.utils.Data;
+import nl.teslanet.mule.transport.coap.client.test.utils.Data;
 
 
 /**

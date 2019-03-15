@@ -32,7 +32,7 @@ import org.mule.api.MuleEvent;
 import org.mule.api.MuleMessage;
 import org.mule.munit.runner.functional.FunctionalMunitSuite;
 
-import nl.teslanet.mule.transport.coap.server.test.utils.Data;
+import nl.teslanet.mule.transport.coap.client.test.utils.Data;
 
 
 @RunWith(Parameterized.class)

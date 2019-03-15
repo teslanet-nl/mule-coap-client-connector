@@ -51,7 +51,7 @@ to your `pom.xml` (without the dots):
     <dependency>
             <groupId>nl.teslanet.mule.transport.coap</groupId>
             <artifactId>mule-coap-client-connector</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.1</version>
     </dependency>
     ...
   </dependencies>

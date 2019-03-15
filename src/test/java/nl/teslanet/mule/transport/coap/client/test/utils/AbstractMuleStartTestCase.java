@@ -11,7 +11,7 @@
  * Contributors:
  *    (teslanet.nl) Rogier Cobben - initial creation
  ******************************************************************************/
-package nl.teslanet.mule.transport.coap.server.test.utils;
+package nl.teslanet.mule.transport.coap.client.test.utils;
 
 
 import org.junit.After;
