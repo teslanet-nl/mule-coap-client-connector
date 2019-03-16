@@ -27,11 +27,12 @@ http://www.mulesoft.org/schema/mule/coap-client http://www.teslanet.nl/schema/mu
  ******************************************************************************/
       Mule CoAP connector test application
    </description>
-   <coap-client:config name="config" host="127.0.0.1" logMessages="true" doc:name="CoAP Client: Configuration"/>
+   <coap-client:config name="config" host="127.0.0.1" logMessages="true" doc:name="CoAP Client: Configuration"
+   notificationReregistrationBackoff="100"/>
       
       
    <sub-flow name="start_observe">
-        <coap-client:start-observe config-ref="config" path="/observe/temporary" responseHandler="handler" doc:name="CoAP Client"/>
+      <coap-client:start-observe config-ref="config" path="/observe/temporary" responseHandler="handler_temporary" doc:name="CoAP Client"/>
    </sub-flow>
    
    <sub-flow name="stop_observe">
@@ -42,18 +43,116 @@ http://www.mulesoft.org/schema/mule/coap-client http://www.teslanet.nl/schema/mu
       <coap-client:put config-ref="config" path="/observe/temporary" doc:name="CoAP Client"/>
    </sub-flow>
    
-   <flow name="observe_temporary">
-      <coap-client:handle-response config-ref="config" handlerName="handler" doc:name="CoAP Client (Streaming)"/>
-      <echo-component doc:name="temporary_handler" />
+   <flow name="observe_handler_temporary">
+      <coap-client:handle-response config-ref="config" handlerName="handler_temporary" doc:name="CoAP Client (Streaming)"/>
+      <echo-component doc:name="handler_temporary" />
    </flow>
    
-   <flow name="observe_permanent">
+   
+   
+   <sub-flow name="start_observe1">
+      <coap-client:start-observe config-ref="config" path="/observe/temporary1" responseHandler="handler_temporary1" doc:name="CoAP Client"/>
+   </sub-flow>
+   
+   <sub-flow name="stop_observe1">
+      <coap-client:stop-observe config-ref="config" path="/observe/temporary1" doc:name="CoAP Client"/>
+   </sub-flow>
+   
+   <sub-flow name="do_put_temporary1">
+      <coap-client:put config-ref="config" path="/observe/temporary1" doc:name="CoAP Client"/>
+   </sub-flow>
+   
+   <flow name="observe_handler_temporary1">
+      <coap-client:handle-response config-ref="config" handlerName="handler_temporary1" doc:name="CoAP Client (Streaming)"/>
+      <echo-component doc:name="handler_temporary1" />
+   </flow>
+      
+   
+   <sub-flow name="start_observe2">
+      <coap-client:start-observe config-ref="config" path="/observe/temporary2" responseHandler="handler_temporary2" doc:name="CoAP Client"/>
+   </sub-flow>
+   
+   <sub-flow name="stop_observe2">
+      <coap-client:stop-observe config-ref="config" path="/observe/temporary2" doc:name="CoAP Client"/>
+   </sub-flow>
+   
+   <sub-flow name="do_put_temporary2">
+      <coap-client:put config-ref="config" path="/observe/temporary2" doc:name="CoAP Client"/>
+   </sub-flow>
+
+   <flow name="observe_handler_temporary2">
+      <coap-client:handle-response config-ref="config" handlerName="handler_temporary2" doc:name="CoAP Client (Streaming)"/>
+      <echo-component doc:name="handler_temporary2" />
+   </flow>
+   
+   
+   
+   <sub-flow name="start_maxage1">
+      <coap-client:start-observe config-ref="config" path="/observe/maxage1" responseHandler="handler_maxage1" doc:name="CoAP Client"/>
+   </sub-flow>
+   
+   <sub-flow name="stop_maxage1">
+      <coap-client:stop-observe config-ref="config" path="/observe/maxage1" doc:name="CoAP Client"/>
+   </sub-flow>
+   
+   <sub-flow name="do_put_maxage1">
+      <coap-client:put config-ref="config" path="/observe/maxage1" doc:name="CoAP Client"/>
+   </sub-flow>
+   
+   <flow name="observe_handler_maxage1">
+      <coap-client:handle-response config-ref="config" handlerName="handler_maxage1" doc:name="CoAP Client (Streaming)"/>
+      <echo-component doc:name="handler_maxage1" />
+   </flow>
+   
+   
+   <sub-flow name="start_maxage1_nonotify">
+      <coap-client:start-observe config-ref="config" path="/observe/maxage1_nonotify" responseHandler="handler_maxage1_nonotify" doc:name="CoAP Client"/>
+   </sub-flow>
+   
+   <sub-flow name="stop_maxage1_nonotify">
+      <coap-client:stop-observe config-ref="config" path="/observe/maxage1_nonotify" doc:name="CoAP Client" />
+   </sub-flow>
+   
+   <sub-flow name="do_put_maxage1_nonotify">
+      <coap-client:put config-ref="config" path="/observe/maxage1_nonotify" doc:name="CoAP Client"/>
+   </sub-flow>
+   
+   <flow name="observe_handler_maxage1_nonotify">
+      <coap-client:handle-response config-ref="config" handlerName="handler_maxage1_nonotify" doc:name="CoAP Client (Streaming)"/>
+      <echo-component doc:name="handler_maxage1_nonotify" />
+   </flow>
+   
+   
+   <sub-flow name="start_maxage12_nonotify">
+      <coap-client:start-observe config-ref="config" path="/observe/maxage12_nonotify" responseHandler="handler_maxage12_nonotify" doc:name="CoAP Client"/>
+   </sub-flow>
+   
+   <sub-flow name="stop_maxage12_nonotify">
+      <coap-client:stop-observe config-ref="config" path="/observe/maxage12_nonotify" doc:name="CoAP Client" />
+   </sub-flow>
+   
+   <sub-flow name="do_put_maxage12_nonotify">
+      <coap-client:put config-ref="config" path="/observe/maxage12_nonotify" doc:name="CoAP Client"/>
+   </sub-flow>
+   
+   <flow name="observe_handler_maxage12_nonotify">
+      <coap-client:handle-response config-ref="config" handlerName="handler_maxage12_nonotify" doc:name="CoAP Client (Streaming)"/>
+      <echo-component doc:name="handler_maxage12_nonotify" />
+   </flow>
+   
+   
+   <flow name="observe_handler_permanent">
       <coap-client:observe config-ref="config" path="/observe/permanent" doc:name="CoAP Client" />
-      <log-component doc:name="permanent_observe" />
+      <log-component doc:name="handler_permanent" />
    </flow>
    
    <sub-flow name="do_put_permanent">
       <coap-client:put config-ref="config" path="/observe/permanent" doc:name="CoAP Client"/>
    </sub-flow>
+   
+   <sub-flow name="observation_list">
+      <coap-client:list-observations config-ref="config" doc:name="CoAP Client"/>
+   </sub-flow>
+   
      
 </mule>
