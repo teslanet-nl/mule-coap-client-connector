@@ -36,7 +36,7 @@
 		<category>Community</category>
 		<licensePath>LICENSE.md</licensePath>
 		<devkit.studio.package.skip>false</devkit.studio.package.skip>
-        <californium.version>1.0.6</californium.version>        
+        <californium.version>1.0.7</californium.version>        
         <munit.version>1.3.8</munit.version>
         <test.mule.version>3.9.0</test.mule.version>      
 	</properties>
@@ -131,7 +131,7 @@
         <dependency>
             <groupId>nl.teslanet.mule.transport.coap</groupId>
             <artifactId>mule-coap-commons</artifactId>
-			<version>1.0.0</version>
+			<version>1.1.0-SNAPSHOT</version>
 		</dependency>
 		
 		<!-- Test Dependencies -->

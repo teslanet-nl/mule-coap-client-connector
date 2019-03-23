@@ -14,6 +14,7 @@
 package nl.teslanet.mule.transport.coap.client.test.properties;
 
 import nl.teslanet.mule.transport.coap.commons.options.ETag;
+import nl.teslanet.mule.transport.coap.commons.options.InvalidETagException;
 
 /**
  * Test outbound If Match list property, single bytes value
@@ -21,7 +22,7 @@ import nl.teslanet.mule.transport.coap.commons.options.ETag;
  */
 public class OptIfMatchListOutbound2Test extends AbstractOutboundPropertiesTest
 {
-    private ETag getValue()
+    private ETag getValue() throws InvalidETagException
     {
         return new ETag( "AA001122");
     }
@@ -39,7 +40,7 @@ public class OptIfMatchListOutbound2Test extends AbstractOutboundPropertiesTest
      * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractPropertiesTest#getOutboundPropertyValue()
      */
     @Override
-    protected Object getOutboundPropertyValue()
+    protected Object getOutboundPropertyValue() throws InvalidETagException
     {
         return getValue().asBytes();
     }
@@ -48,7 +49,7 @@ public class OptIfMatchListOutbound2Test extends AbstractOutboundPropertiesTest
      * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractOutboundPropertiesTest#getStrategy()
      */
     @Override
-    protected OptionStrategy getStrategy()
+    protected OptionStrategy getStrategy() throws InvalidETagException
     {
         return new OptIfMatchListStrategy( getValue() );
     }

@@ -294,7 +294,7 @@ public class DiscoveryTest extends FunctionalMunitSuite
         String title= link.getAttributes().getTitle();
         assertNull( "title unexpected", title );
 
-}
+    }
 
     @Test
     public void testIf() throws Exception
@@ -325,7 +325,7 @@ public class DiscoveryTest extends FunctionalMunitSuite
         assertEquals( "sz unexpected", "", sz );
         String title= link.getAttributes().getTitle();
         assertNull( "title unexpected", title );
-}
+    }
 
     //TODO cf106 bug?
     @Ignore
@@ -356,7 +356,7 @@ public class DiscoveryTest extends FunctionalMunitSuite
         assertEquals( "sz unexpected", "", sz );
         String title= link.getAttributes().getTitle();
         assertNull( "title unexpected", title );
-}
+    }
 
     @Test
     public void testRt() throws Exception
@@ -375,7 +375,7 @@ public class DiscoveryTest extends FunctionalMunitSuite
         assertEquals( "wrong number of rt", 2, rt.size() );
         assertTrue( "rt does not contain rt1", rt.contains( "rt1" ) );
         assertTrue( "rt does not contain rt1", rt.contains( "rt2" ) );
- 
+
         //check other attributes are not there
         List< String > ct= link.getAttributes().getContentTypes();
         assertEquals( "ct unexpected", 0, ct.size() );
@@ -404,7 +404,7 @@ public class DiscoveryTest extends FunctionalMunitSuite
         assertNotNull( "/service/resource_with_sz is missing", link );
         String sz= link.getAttributes().getMaximumSizeEstimate();
         assertEquals( "sz has wrong value", "123456", sz );
-        
+
         //check other attributes are not there
         List< String > ct= link.getAttributes().getContentTypes();
         assertEquals( "ct unexpected", 0, ct.size() );
@@ -434,7 +434,7 @@ public class DiscoveryTest extends FunctionalMunitSuite
         assertNotNull( "/service/resource_with_title is missing", link );
         String title= link.getAttributes().getTitle();
         assertEquals( "title has wrong value", "Title is resource_with_title", title );
-        
+
         //check other attributes are not there
         List< String > ct= link.getAttributes().getContentTypes();
         assertEquals( "ct unexpected", 0, ct.size() );
@@ -457,27 +457,27 @@ public class DiscoveryTest extends FunctionalMunitSuite
         String flowName= "discover";
         MuleEvent event= testEvent( "nothing_important" );
         MuleEvent result= runFlow( flowName, event );
-        MuleMessage response= result.getMessage();       
+        MuleMessage response= result.getMessage();
         HashMap< String, WebLink > links= linkMap( (Set< WebLink >) response.getPayload() );
         WebLink link= links.get( "/service/dynamic_resource" );
         assertNull( "/service/dynamic_resource should not be there", link );
-        
+
         //create resource
         flowName= "post";
         event= testEvent( "dynamic_resource" );
         result= runFlow( flowName, event );
         response= result.getMessage();
         assertEquals( "could not create resource", "2.01", response.getInboundProperty( "coap.response.code" ) );
-        
+
         //check resource is there
         flowName= "discover";
         event= testEvent( "nothing_important" );
         result= runFlow( flowName, event );
         response= result.getMessage();
-        links = linkMap( (Set< WebLink >) response.getPayload() );
+        links= linkMap( (Set< WebLink >) response.getPayload() );
         link= links.get( "/service/dynamic_resource" );
         assertNotNull( "/service/dynamic_resource should not be there", link );
-        
+
         //delete resource
         flowName= "delete";
         event= testEvent( "dynamic_resource" );
@@ -489,7 +489,7 @@ public class DiscoveryTest extends FunctionalMunitSuite
         flowName= "discover";
         event= testEvent( "nothing_important" );
         result= runFlow( flowName, event );
-        response= result.getMessage();       
+        response= result.getMessage();
         links= linkMap( (Set< WebLink >) response.getPayload() );
         link= links.get( "/service/dynamic_resource" );
         assertNull( "/service/dynamic_resource should not be there", link );

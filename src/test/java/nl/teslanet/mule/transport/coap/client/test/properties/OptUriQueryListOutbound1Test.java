@@ -21,8 +21,6 @@ import org.junit.Ignore;
  * Test outbound uri query list property, single value
  *
  */
-//TODO commons bug
-@Ignore
 public class OptUriQueryListOutbound1Test extends AbstractOutboundPropertiesTest
 {
     /**

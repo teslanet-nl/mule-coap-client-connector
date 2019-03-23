@@ -37,6 +37,7 @@ import org.mule.api.MuleMessage;
 import org.mule.munit.runner.functional.FunctionalMunitSuite;
 
 import nl.teslanet.mule.transport.coap.commons.options.ETag;
+import nl.teslanet.mule.transport.coap.commons.options.InvalidETagException;
 
 
 /**
@@ -120,8 +121,9 @@ public abstract class AbstractInboundPropertiesTest extends FunctionalMunitSuite
     /**
      * The property value that is expected to receive in inbound test
      * @return the value to expect
+     * @throws InvalidETagException 
      */
-    protected Object getExpectedInboundPropertyValue()
+    protected Object getExpectedInboundPropertyValue() throws InvalidETagException
     {
         return new String( getPropertyName() + "_test_value" );
     }
@@ -130,8 +132,9 @@ public abstract class AbstractInboundPropertiesTest extends FunctionalMunitSuite
      * Implement this method to specify the strategy the coap test server has to use
      * in the test.
      * @return the Options strategy to use
+     * @throws InvalidETagException 
      */
-    protected abstract OptionStrategy getStrategy();
+    protected abstract OptionStrategy getStrategy() throws InvalidETagException;
 
     /**
      * Override this method when a specific flow has to be used. 

@@ -14,6 +14,7 @@
 package nl.teslanet.mule.transport.coap.client.test.properties;
 
 import nl.teslanet.mule.transport.coap.commons.options.ETag;
+import nl.teslanet.mule.transport.coap.commons.options.InvalidETagException;
 
 /**
  * Test Etag list property, signle value
@@ -21,8 +22,21 @@ import nl.teslanet.mule.transport.coap.commons.options.ETag;
  */
 public class OptEtagListOutbound2Test extends AbstractOutboundPropertiesTest
 {
-    private ETag value= new ETag( "AA001122");
+    /**
+     * the value to test
+     */
+    private ETag value; 
     
+    /**
+     * constructor
+     * @throws InvalidETagException 
+     */
+    public OptEtagListOutbound2Test() throws InvalidETagException
+    {
+        super();
+        value= new ETag( "AA001122"); 
+    }
+
     /* (non-Javadoc)
      * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractPropertiesTest#getPropertyName()
      */

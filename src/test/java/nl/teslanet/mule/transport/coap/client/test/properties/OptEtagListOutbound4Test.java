@@ -13,7 +13,10 @@
  ******************************************************************************/
 package nl.teslanet.mule.transport.coap.client.test.properties;
 
+
 import nl.teslanet.mule.transport.coap.commons.options.ETag;
+import nl.teslanet.mule.transport.coap.commons.options.InvalidETagException;
+
 
 /**
  * Test Etag list property, signle value
@@ -21,8 +24,14 @@ import nl.teslanet.mule.transport.coap.commons.options.ETag;
  */
 public class OptEtagListOutbound4Test extends AbstractOutboundPropertiesTest
 {
-    private ETag value= new ETag( "68656C6C6F");
-    
+    private ETag value;
+
+    public OptEtagListOutbound4Test() throws InvalidETagException
+    {
+        super();
+        value= new ETag( "68656C6C6F" );
+    }
+
     /* (non-Javadoc)
      * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractPropertiesTest#getPropertyName()
      */
@@ -38,7 +47,7 @@ public class OptEtagListOutbound4Test extends AbstractOutboundPropertiesTest
     @Override
     protected Object getOutboundPropertyValue()
     {
-        return new Stringable( value.asUTF8());
+        return new Stringable( new String( value.asBytes() ) );
     }
 
     /* (non-Javadoc)

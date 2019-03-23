@@ -13,16 +13,16 @@
  ******************************************************************************/
 package nl.teslanet.mule.transport.coap.client.test.properties;
 
+
 import java.util.LinkedList;
 
 import org.junit.Ignore;
+
 
 /**
  * Test outbound uri query list property, multiple values
  *
  */
-//TODO commons bug
-@Ignore
 public class OptUriQueryListOutbound1mTest extends AbstractOutboundPropertiesTest
 {
     /**
@@ -38,7 +38,7 @@ public class OptUriQueryListOutbound1mTest extends AbstractOutboundPropertiesTes
 
         return list;
     }
-    
+
     /* (non-Javadoc)
      * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractPropertiesTest#getPropertyName()
      */

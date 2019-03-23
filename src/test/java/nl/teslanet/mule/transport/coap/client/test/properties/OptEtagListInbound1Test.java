@@ -17,6 +17,7 @@ package nl.teslanet.mule.transport.coap.client.test.properties;
 import java.util.LinkedList;
 
 import nl.teslanet.mule.transport.coap.commons.options.ETag;
+import nl.teslanet.mule.transport.coap.commons.options.InvalidETagException;
 
 
 /**
@@ -29,8 +30,9 @@ public class OptEtagListInbound1Test extends AbstractInboundPropertiesTest
     /**
      * Test value
      * @return the value to use in test
+     * @throws InvalidETagException 
      */
-    private LinkedList< ETag > getValue()
+    private LinkedList< ETag > getValue() throws InvalidETagException
     {
         LinkedList< ETag > list= new LinkedList< ETag >();
         list.add( new ETag( "0011FF" ) );
@@ -61,7 +63,7 @@ public class OptEtagListInbound1Test extends AbstractInboundPropertiesTest
      * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractPropertiesTest#getExpectedInboundPropertyValue()
      */
     @Override
-    protected Object getExpectedInboundPropertyValue()
+    protected Object getExpectedInboundPropertyValue() throws InvalidETagException
     {
         return getValue();
     }
@@ -70,7 +72,7 @@ public class OptEtagListInbound1Test extends AbstractInboundPropertiesTest
      * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractInboundPropertiesTest#getStrategy()
      */
     @Override
-    protected OptionStrategy getStrategy()
+    protected OptionStrategy getStrategy() throws InvalidETagException
     {
         return new OptEtagListStrategy( getValue() );
     }

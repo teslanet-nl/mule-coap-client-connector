@@ -13,18 +13,15 @@
  ******************************************************************************/
 package nl.teslanet.mule.transport.coap.client.test.properties;
 
-import org.junit.Ignore;
 
 /**
  * Test outbound size2 property, as Stringable
  *
  */
-//TODO cf bug
-@Ignore
 public class OptSize2Outbound3Test extends AbstractOutboundPropertiesTest
 {
     private final int value= 133;
-    
+
     /* (non-Javadoc)
      * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractPropertiesTest#getPropertyName()
      */
@@ -40,7 +37,7 @@ public class OptSize2Outbound3Test extends AbstractOutboundPropertiesTest
     @Override
     protected Object getOutboundPropertyValue()
     {
-        return new Stringable( new Integer( value ));
+        return new Stringable( new Integer( value ) );
     }
 
     /* (non-Javadoc)

@@ -13,16 +13,14 @@
  ******************************************************************************/
 package nl.teslanet.mule.transport.coap.client.test.properties;
 
+
 import java.util.LinkedList;
 
-import org.junit.Ignore;
 
 /**
  * Test outbound uri query list property, single value
  *
  */
-//TODO commons bug
-@Ignore
 public class OptUriQueryListOutbound2Test extends AbstractOutboundPropertiesTest
 {
     /**
@@ -36,7 +34,7 @@ public class OptUriQueryListOutbound2Test extends AbstractOutboundPropertiesTest
 
         return list;
     }
-    
+
     /* (non-Javadoc)
      * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractPropertiesTest#getPropertyName()
      */
@@ -53,12 +51,12 @@ public class OptUriQueryListOutbound2Test extends AbstractOutboundPropertiesTest
     protected Object getOutboundPropertyValue()
     {
         LinkedList< Stringable > list= new LinkedList< Stringable >();
-        for ( String segment : getValue())
+        for ( String segment : getValue() )
         {
             list.add( new Stringable( segment ) );
         }
         return list;
-     }
+    }
 
     /* (non-Javadoc)
      * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractOutboundPropertiesTest#getStrategy()

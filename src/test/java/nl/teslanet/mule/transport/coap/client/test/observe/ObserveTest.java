@@ -21,7 +21,6 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.eclipse.californium.core.CoapServer;
 import org.eclipse.californium.core.coap.CoAP.ResponseCode;
@@ -33,8 +32,8 @@ import org.junit.Test;
 import org.mule.api.MuleEvent;
 import org.mule.api.MuleException;
 import org.mule.api.MuleMessage;
-import org.mule.munit.common.mocking.SpyProcess;
 import org.mule.munit.common.mocking.Attribute;
+import org.mule.munit.common.mocking.SpyProcess;
 import org.mule.munit.runner.functional.FunctionalMunitSuite;
 import org.mule.transport.NullPayload;
 
@@ -368,7 +367,7 @@ public class ObserveTest extends FunctionalMunitSuite
      * @throws Exception should not happen in this test
      */
     @Test
-    public void testObserveReregistration12() throws Exception
+    public void testObserveReregistration4() throws Exception
     {
         final List< MuleMessage > observations= Collections.synchronizedList( new ArrayList< MuleMessage >() );
         MuleEvent event;
@@ -376,7 +375,7 @@ public class ObserveTest extends FunctionalMunitSuite
         MuleEvent result;
         String spiedProcessor= "echo-component";
         String spiedProcessorNamespace= "mule";
-        Attribute spiedProcessorDocName= Attribute.attribute( "name" ).ofNamespace( "doc" ).withValue( "handler_maxage12_nonotify" );
+        Attribute spiedProcessorDocName= Attribute.attribute( "name" ).ofNamespace( "doc" ).withValue( "handler_maxage4_nonotify" );
         SpyProcess spy= new SpyProcess()
             {
                 @Override
@@ -395,16 +394,16 @@ public class ObserveTest extends FunctionalMunitSuite
         verifyCallOfMessageProcessor( spiedProcessor ).ofNamespace( spiedProcessorNamespace ).withAttributes( spiedProcessorDocName ).times( 0 );
 
         event= testEvent( "nothing_important" );
-        result= runFlow( "start_maxage12_nonotify", event );
+        result= runFlow( "start_maxage4_nonotify", event );
         //five notifications expected, period= max_age + notificationReregistrationBackoff per notification, plus margin
-        Thread.sleep( 5 * ( 12 + 2 ) * 1000 + 500 );
+        Thread.sleep( 5 * ( 4 + 2 ) * 1000 + 500 );
         // GET observe=0 response + notification= 1 + 5
         verifyCallOfMessageProcessor( spiedProcessor ).ofNamespace( spiedProcessorNamespace ).withAttributes( spiedProcessorDocName ).times( 1 + 5 );
 
         event= testEvent( "nothing_important" );
-        result= runFlow( "stop_maxage12_nonotify", event );
+        result= runFlow( "stop_maxage4_nonotify", event );
         //wait some more
-        Thread.sleep( 5 * ( 12 + 2 ) * 1000 + 500 );
+        Thread.sleep( 5 * ( 4 + 2 ) * 1000 + 500 );
         //stop result is also handled -> 1+5+1 times
         verifyCallOfMessageProcessor( spiedProcessor ).ofNamespace( spiedProcessorNamespace ).withAttributes( spiedProcessorDocName ).times( 1 + 5 + 1 );
     }

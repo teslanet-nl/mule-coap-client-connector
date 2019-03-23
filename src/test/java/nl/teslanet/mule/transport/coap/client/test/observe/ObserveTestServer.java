@@ -68,7 +68,7 @@ public class ObserveTestServer extends CoapServer
         parent.add( new ObservableResource( "permanent" ) );
         parent.add( new ObservableResource( "maxage1", 1, 1 ) );
         parent.add( new ObservableResource( "maxage1_nonotify", 1, 0 ) );
-        parent.add( new ObservableResource( "maxage12_nonotify", 12, 0 ) );
+        parent.add( new ObservableResource( "maxage4_nonotify", 4, 0 ) );
     }
 
     /**

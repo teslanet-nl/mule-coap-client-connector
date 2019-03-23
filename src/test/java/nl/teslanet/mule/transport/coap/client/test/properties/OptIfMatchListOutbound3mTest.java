@@ -13,9 +13,12 @@
  ******************************************************************************/
 package nl.teslanet.mule.transport.coap.client.test.properties;
 
+
 import java.util.LinkedList;
 
 import nl.teslanet.mule.transport.coap.commons.options.ETag;
+import nl.teslanet.mule.transport.coap.commons.options.InvalidETagException;
+
 
 /**
  * Test outbound If Match list property, multiple String value
@@ -26,17 +29,18 @@ public class OptIfMatchListOutbound3mTest extends AbstractOutboundPropertiesTest
     /**
      * Test value
      * @return the value to use in test
+     * @throws InvalidETagException 
      */
-    private LinkedList< ETag > getValue()
+    private LinkedList< ETag > getValue() throws InvalidETagException
     {
-        LinkedList< ETag  > list= new LinkedList< ETag >();
+        LinkedList< ETag > list= new LinkedList< ETag >();
         list.add( new ETag( "68656C6C6F" ) );
         list.add( new ETag( "6F6C6C61" ) );
         list.add( new ETag( "686F69" ) );
 
         return list;
     }
-    
+
     /* (non-Javadoc)
      * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractPropertiesTest#getPropertyName()
      */
@@ -50,12 +54,12 @@ public class OptIfMatchListOutbound3mTest extends AbstractOutboundPropertiesTest
      * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractPropertiesTest#getOutboundPropertyValue()
      */
     @Override
-    protected Object getOutboundPropertyValue()
+    protected Object getOutboundPropertyValue() throws InvalidETagException
     {
-        LinkedList<String> propertyValue= new LinkedList<String>();
+        LinkedList< String > propertyValue= new LinkedList< String >();
         for ( ETag value : getValue() )
         {
-            propertyValue.add( value.asUTF8() );
+            propertyValue.add( new String( value.asBytes() ) );
         }
         return propertyValue;
     }
@@ -64,7 +68,7 @@ public class OptIfMatchListOutbound3mTest extends AbstractOutboundPropertiesTest
      * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractOutboundPropertiesTest#getStrategy()
      */
     @Override
-    protected OptionStrategy getStrategy()
+    protected OptionStrategy getStrategy() throws InvalidETagException
     {
         return new OptIfMatchListStrategy( getValue() );
     }

@@ -13,9 +13,13 @@
  ******************************************************************************/
 package nl.teslanet.mule.transport.coap.client.test.properties;
 
+
 import java.util.LinkedList;
 
 import nl.teslanet.mule.transport.coap.commons.options.ETag;
+import nl.teslanet.mule.transport.coap.commons.options.InvalidETagException;
+import nl.teslanet.mule.transport.coap.client.test.properties.Stringable;
+
 
 /**
  * Test outbound Etag list property, multiple values
@@ -26,17 +30,18 @@ public class OptEtagListOutbound4mTest extends AbstractOutboundPropertiesTest
     /**
      * Test value
      * @return the value to use in test
+     * @throws InvalidETagException 
      */
-    private LinkedList< ETag > getValue()
+    private LinkedList< ETag > getValue() throws InvalidETagException
     {
-        LinkedList< ETag  > list= new LinkedList< ETag >();
+        LinkedList< ETag > list= new LinkedList< ETag >();
         list.add( new ETag( "68656C6C6F" ) );
         list.add( new ETag( "6F6C6C61" ) );
         list.add( new ETag( "686F69" ) );
 
         return list;
     }
-    
+
     /* (non-Javadoc)
      * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractPropertiesTest#getPropertyName()
      */
@@ -50,12 +55,12 @@ public class OptEtagListOutbound4mTest extends AbstractOutboundPropertiesTest
      * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractPropertiesTest#getOutboundPropertyValue()
      */
     @Override
-    protected Object getOutboundPropertyValue()
+    protected Object getOutboundPropertyValue() throws InvalidETagException
     {
-        LinkedList<Object> propertyValues= new LinkedList<Object>();
+        LinkedList< Object > propertyValues= new LinkedList< Object >();
         for ( ETag value : getValue() )
         {
-            propertyValues.add( new Stringable( value.asUTF8() ));
+            propertyValues.add( new Stringable( new String( value.asBytes() ) ) );
         }
         return propertyValues;
     }
@@ -64,7 +69,7 @@ public class OptEtagListOutbound4mTest extends AbstractOutboundPropertiesTest
      * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractOutboundPropertiesTest#getStrategy()
      */
     @Override
-    protected OptionStrategy getStrategy()
+    protected OptionStrategy getStrategy() throws InvalidETagException
     {
         return new OptEtagListStrategy( getValue() );
     }

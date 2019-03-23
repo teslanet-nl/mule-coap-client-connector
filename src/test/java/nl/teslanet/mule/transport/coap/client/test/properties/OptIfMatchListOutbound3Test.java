@@ -13,7 +13,10 @@
  ******************************************************************************/
 package nl.teslanet.mule.transport.coap.client.test.properties;
 
+
 import nl.teslanet.mule.transport.coap.commons.options.ETag;
+import nl.teslanet.mule.transport.coap.commons.options.InvalidETagException;
+
 
 /**
  * Test outbound If Match list property, single String value
@@ -21,11 +24,11 @@ import nl.teslanet.mule.transport.coap.commons.options.ETag;
  */
 public class OptIfMatchListOutbound3Test extends AbstractOutboundPropertiesTest
 {
-    private ETag getValue()
+    private ETag getValue() throws InvalidETagException
     {
-        return new ETag( "68656C6C6F");
+        return new ETag( "68656C6C6F" );
     }
-    
+
     /* (non-Javadoc)
      * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractPropertiesTest#getPropertyName()
      */
@@ -39,16 +42,16 @@ public class OptIfMatchListOutbound3Test extends AbstractOutboundPropertiesTest
      * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractPropertiesTest#getOutboundPropertyValue()
      */
     @Override
-    protected Object getOutboundPropertyValue()
+    protected Object getOutboundPropertyValue() throws InvalidETagException
     {
-        return getValue().asUTF8();
+        return new String( getValue().asBytes() );
     }
 
     /* (non-Javadoc)
      * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractOutboundPropertiesTest#getStrategy()
      */
     @Override
-    protected OptionStrategy getStrategy()
+    protected OptionStrategy getStrategy() throws InvalidETagException
     {
         return new OptIfMatchListStrategy( getValue() );
     }

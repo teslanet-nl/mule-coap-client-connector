@@ -123,21 +123,21 @@ http://www.mulesoft.org/schema/mule/coap-client http://www.teslanet.nl/schema/mu
    </flow>
    
    
-   <sub-flow name="start_maxage12_nonotify">
-      <coap-client:start-observe config-ref="config" path="/observe/maxage12_nonotify" responseHandler="handler_maxage12_nonotify" doc:name="CoAP Client"/>
+   <sub-flow name="start_maxage4_nonotify">
+      <coap-client:start-observe config-ref="config" path="/observe/maxage4_nonotify" responseHandler="handler_maxage4_nonotify" doc:name="CoAP Client"/>
    </sub-flow>
    
-   <sub-flow name="stop_maxage12_nonotify">
-      <coap-client:stop-observe config-ref="config" path="/observe/maxage12_nonotify" doc:name="CoAP Client" />
+   <sub-flow name="stop_maxage4_nonotify">
+      <coap-client:stop-observe config-ref="config" path="/observe/maxage4_nonotify" doc:name="CoAP Client" />
    </sub-flow>
    
-   <sub-flow name="do_put_maxage12_nonotify">
-      <coap-client:put config-ref="config" path="/observe/maxage12_nonotify" doc:name="CoAP Client"/>
+   <sub-flow name="do_put_maxage4_nonotify">
+      <coap-client:put config-ref="config" path="/observe/maxage4_nonotify" doc:name="CoAP Client"/>
    </sub-flow>
    
-   <flow name="observe_handler_maxage12_nonotify">
-      <coap-client:handle-response config-ref="config" handlerName="handler_maxage12_nonotify" doc:name="CoAP Client (Streaming)"/>
-      <echo-component doc:name="handler_maxage12_nonotify" />
+   <flow name="observe_handler_maxage4_nonotify">
+      <coap-client:handle-response config-ref="config" handlerName="handler_maxage4_nonotify" doc:name="CoAP Client (Streaming)"/>
+      <echo-component doc:name="handler_maxage4_nonotify" />
    </flow>
    
    

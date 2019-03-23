@@ -16,6 +16,7 @@ package nl.teslanet.mule.transport.coap.client.test.properties;
 import java.util.LinkedList;
 
 import nl.teslanet.mule.transport.coap.commons.options.ETag;
+import nl.teslanet.mule.transport.coap.commons.options.InvalidETagException;
 
 /**
  * Test outbound If Match list property, multiple bytes value
@@ -26,8 +27,9 @@ public class OptIfMatchListOutbound2mTest extends AbstractOutboundPropertiesTest
     /**
      * Test value
      * @return the value to use in test
+     * @throws InvalidETagException 
      */
-    private LinkedList< ETag > getValue()
+    private LinkedList< ETag > getValue() throws InvalidETagException
     {
         LinkedList< ETag > list= new LinkedList< ETag >();
         list.add( new ETag( "A0" ) );
@@ -50,7 +52,7 @@ public class OptIfMatchListOutbound2mTest extends AbstractOutboundPropertiesTest
      * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractPropertiesTest#getOutboundPropertyValue()
      */
     @Override
-    protected Object getOutboundPropertyValue()
+    protected Object getOutboundPropertyValue() throws InvalidETagException
     {
         LinkedList<byte[]> propertyValue= new LinkedList<byte[]>();
         for ( ETag value : getValue() )
@@ -64,7 +66,7 @@ public class OptIfMatchListOutbound2mTest extends AbstractOutboundPropertiesTest
      * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractOutboundPropertiesTest#getStrategy()
      */
     @Override
-    protected OptionStrategy getStrategy()
+    protected OptionStrategy getStrategy() throws InvalidETagException
     {
         return new OptIfMatchListStrategy( getValue() );
     }
