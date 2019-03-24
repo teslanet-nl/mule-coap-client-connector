@@ -38,6 +38,11 @@ import org.mule.munit.runner.functional.FunctionalMunitSuite;
 import org.mule.transport.NullPayload;
 
 
+/**
+ * Test oberve
+ *
+ */
+//TODO test exceptions in handler
 public class ObserveTest extends FunctionalMunitSuite
 {
     static final long PAUZE= 100L;
@@ -318,7 +323,7 @@ public class ObserveTest extends FunctionalMunitSuite
      * Test observe re-registration after max_age 
      * @throws Exception should not happen in this test
      */
-    //TODO cf bug, notificationReregistrationBackoff not implemented
+    //TODO cf issue #917, notificationReregistrationBackoff not implemented
     @Ignore
     @Test
     public void testObserveReregistration1() throws Exception
