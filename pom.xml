@@ -131,7 +131,7 @@
         <dependency>
             <groupId>nl.teslanet.mule.transport.coap</groupId>
             <artifactId>mule-coap-commons</artifactId>
-			<version>1.1.0-SNAPSHOT</version>
+			<version>1.1.0</version>
 		</dependency>
 		
 		<!-- Test Dependencies -->
