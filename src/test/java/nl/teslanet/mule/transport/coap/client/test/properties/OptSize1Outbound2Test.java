@@ -13,10 +13,6 @@
  ******************************************************************************/
 package nl.teslanet.mule.transport.coap.client.test.properties;
 
-
-import org.junit.Ignore;
-
-
 /**
  * Test outbound size1 property, as String
  *

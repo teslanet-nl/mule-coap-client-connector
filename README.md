@@ -10,7 +10,7 @@ The connector uses Californium, a Java CoAP implementation. More information abo
 * [http://coap.technology/](http://coap.technology/).
 
 This component - the Mule CoAP Client Connector - is one of three parts of the Mule CoAP package.  
-The other two being the Mule CoAP Server Connector and the Mule CoAP Commons component . 
+The other two being the Mule CoAP Server Connector and the Mule CoAP Commons component. 
 
 The CoapClient Connector adds CoAP client capability to [Mule enterprise service bus](https://www.mulesoft.com/).
 With it Mule applications can access iot-services using the CoAP protocol. 
@@ -33,7 +33,7 @@ The complete Mule CoAP Connector documentation can be found on [Teslanet.nl](htt
 
 ## Installation
 
-Easiest way to install releases into Anypoint Studio 6 is by installing the Eclipse Plugin using the update site.. 
+Easiest way to install releases into Anypoint Studio 6 is by installing the Eclipse Plugin using the update site. 
 The Mule CoAP Connector update site url is:
 
 ```

@@ -13,9 +13,9 @@
  ******************************************************************************/
 package nl.teslanet.mule.transport.coap.client.test.properties;
 
+
 import java.util.LinkedList;
 
-import org.junit.Ignore;
 
 /**
  * Test outbound uri query list property, single value
@@ -34,7 +34,7 @@ public class OptUriQueryListOutbound1Test extends AbstractOutboundPropertiesTest
 
         return list;
     }
-    
+
     /* (non-Javadoc)
      * @see nl.teslanet.mule.transport.coap.client.test.properties.AbstractPropertiesTest#getPropertyName()
      */
