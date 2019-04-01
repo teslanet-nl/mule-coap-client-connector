@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>nl.teslanet.mule.transport.coap</groupId>
     <artifactId>mule-coap-client-connector</artifactId>
-    <version>1.0.1-SNAPSHOT</version>
+    <version>1.0.1</version>
     <packaging>mule-module</packaging>
 
     <parent>
@@ -44,7 +42,7 @@
         <connection>scm:hg:git+https://github.com/teslanet-nl/mule-coap-client-connector.git</connection>
         <developerConnection>scm:hg:git+https://github.com/teslanet-nl/mule-coap-client-connector.git</developerConnection>
         <url>http://github.com/teslanet-nl/mule-coap-client-connector/tree/master</url>
-        <tag>HEAD</tag>
+        <tag>mule-coap-client-connector-1.0.1</tag>
     </scm>
             
             <distributionManagement>
