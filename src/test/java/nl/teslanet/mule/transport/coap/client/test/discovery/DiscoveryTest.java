@@ -14,42 +14,29 @@
 package nl.teslanet.mule.transport.coap.client.test.discovery;
 
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.both;
-import static org.junit.internal.matchers.ThrowableMessageMatcher.hasMessage;
-
 import org.eclipse.californium.core.CoapServer;
 import org.eclipse.californium.core.WebLink;
 import org.eclipse.californium.core.coap.CoAP;
-import org.eclipse.californium.core.coap.CoAP.ResponseCode;
-import org.hamcrest.Matcher;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mule.api.ConnectionException;
 import org.mule.api.MessagingException;
 import org.mule.api.MuleEvent;
 import org.mule.api.MuleMessage;
-import org.mule.api.lifecycle.LifecycleException;
-import org.mule.api.transport.PropertyScope;
 import org.mule.munit.runner.functional.FunctionalMunitSuite;
-
-import nl.teslanet.mule.transport.coap.client.error.MalformedUriException;
 
 
 public class DiscoveryTest extends FunctionalMunitSuite

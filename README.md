@@ -40,7 +40,7 @@ The Mule CoAP Connector update site url is:
 http://www.teslanet.nl/mule-coap-connector/update/
 ```
 
-Installation of release or development versions from source, is done by dowloading sources or cloning git-repository from Github:
+Installation of release or development versions from source, is done by downloading sources or cloning git-repository from Github:
 
 * Import source into [Anypoint Studio 6](https://www.mulesoft.com/platform/studio)
 * Select the imported project

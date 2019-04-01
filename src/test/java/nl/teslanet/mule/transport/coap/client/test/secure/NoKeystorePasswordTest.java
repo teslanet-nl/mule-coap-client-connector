@@ -22,7 +22,6 @@ import static org.junit.internal.matchers.ThrowableMessageMatcher.hasMessage;
 import org.mule.api.ConnectionException;
 import org.mule.api.lifecycle.LifecycleException;
 
-import nl.teslanet.mule.transport.coap.client.error.EndpointConstructionException;
 import nl.teslanet.mule.transport.coap.client.test.utils.AbstractMuleStartTestCase;
 
 

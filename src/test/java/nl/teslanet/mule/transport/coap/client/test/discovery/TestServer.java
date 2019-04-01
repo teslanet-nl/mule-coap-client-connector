@@ -24,7 +24,6 @@ import org.eclipse.californium.core.coap.CoAP.ResponseCode;
 import org.eclipse.californium.core.network.CoapEndpoint;
 import org.eclipse.californium.core.network.config.NetworkConfig;
 import org.eclipse.californium.core.server.resources.CoapExchange;
-import org.eclipse.californium.core.server.resources.Resource;
 
 
 /**
@@ -64,7 +63,7 @@ public class TestServer extends CoapServer
         getRoot().getChild( "service" ).add( new ObsResource( "resource_with_obs" ) );
         getRoot().getChild( "service" ).add( new RtResource( "resource_with_rt" ) );
         getRoot().getChild( "service" ).add( new SzResource( "resource_with_sz" ) );
-        getRoot().getChild( "service" ).add( new TitleResource( "resource_with_title" ) );       
+        getRoot().getChild( "service" ).add( new TitleResource( "resource_with_title" ) );
     }
 
     /**
@@ -127,7 +126,7 @@ public class TestServer extends CoapServer
         @Override
         public void handlePOST( CoapExchange exchange )
         {
-            getRoot().getChild( "service" ).add( new DeleteResource( exchange.getRequestText()) );
+            getRoot().getChild( "service" ).add( new DeleteResource( exchange.getRequestText() ) );
             exchange.respond( ResponseCode.CREATED );
         }
     }
@@ -169,7 +168,7 @@ public class TestServer extends CoapServer
         @Override
         public void handleDELETE( CoapExchange exchange )
         {
-            if ( getParent().delete( this ))
+            if ( getParent().delete( this ) )
             {
                 exchange.respond( ResponseCode.DELETED, "DELETE called on: " + this.getURI() );
             }
@@ -179,7 +178,7 @@ public class TestServer extends CoapServer
             }
         }
     }
-    
+
     /**
      * Resource with content types
      */
@@ -194,7 +193,7 @@ public class TestServer extends CoapServer
             getAttributes().addContentType( 41 );
         }
     }
-    
+
     /**
      * Resource with interface descriptions
      */
@@ -253,6 +252,7 @@ public class TestServer extends CoapServer
             getAttributes().setMaximumSizeEstimate( 123456 );
         }
     }
+
     /**
      * Resource with title
      */
@@ -263,9 +263,8 @@ public class TestServer extends CoapServer
             // set resource name
             super( name );
             // set display name
-            getAttributes().setTitle( "Title is "+ name );
+            getAttributes().setTitle( "Title is " + name );
         }
     }
-
 
 }
