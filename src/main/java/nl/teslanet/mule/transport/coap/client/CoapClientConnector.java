@@ -43,7 +43,6 @@ import org.eclipse.californium.core.coap.CoAP.Code;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.eclipse.californium.core.coap.Request;
 import org.eclipse.californium.core.network.CoapEndpoint;
-import org.eclipse.californium.core.network.Endpoint;
 import org.eclipse.californium.core.network.interceptors.MessageTracer;
 import org.eclipse.californium.scandium.DTLSConnector;
 import org.eclipse.californium.scandium.config.DtlsConnectorConfig;
@@ -73,6 +72,8 @@ import org.mule.security.oauth.processor.AbstractListeningMessageProcessor;
 import org.mule.transformer.types.DataTypeFactory;
 import org.mule.transport.NullPayload;
 import org.mule.util.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import nl.teslanet.mule.transport.coap.client.config.CoAPClientConfig;
 import nl.teslanet.mule.transport.coap.client.error.EndpointConstructionException;
@@ -107,6 +108,11 @@ public class CoapClientConnector
 {
     //TODO make host port optional on connector config and exception handling on missing on connector and on operation
 
+    /**
+     * Logger of the connector
+     */
+    private static final Logger logger = LoggerFactory.getLogger(CoapClientConnector.class);
+    
     @Config
     private CoAPClientConfig config;
 
@@ -328,6 +334,7 @@ public class CoapClientConnector
     {
         CoapClient client= createClient( true, host, port, "/", null );
 
+        //TODO catch exception when host not resolvable?
         boolean response= client.ping();
         return new Boolean( response );
     }
@@ -911,7 +918,7 @@ public class CoapClientConnector
         {
             outboundProps.put( propName, muleMessage.getOutboundProperty( propName ) );
         }
-        request.setOptions( new Options( outboundProps ) );
+        Options.fillOptionSet( request.getOptions(), outboundProps, false );
         // is done via Client
         // if ( queryParameters != null )
         // {
@@ -1008,7 +1015,7 @@ public class CoapClientConnector
             inboundProps.put( PropertyNames.COAP_RESPONSE_SUCCESS, new Boolean( response.isSuccess() ) );
             //TODO: response code toString gives number format (9.99), this is not in line with server connector that uses text format for the property
             inboundProps.put( PropertyNames.COAP_RESPONSE_CODE, response.getCode().toString() );
-            Options.fillProperties( response.getOptions(), inboundProps );
+            Options.fillPropertyMap( response.getOptions(), inboundProps, logger, "Response option could not be converted into inbound property" );
 
             int contentFormat= response.getOptions().getContentFormat();
             if ( contentFormat == MediaTypeRegistry.UNDEFINED )
